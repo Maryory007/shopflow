@@ -73,6 +73,7 @@ Con un constructor largo es fácil invertir dos `String`; con setters, el pedido
 
 #### Diagrama de clases
 
+Insertar diagrama 
 #### Endpoint que lo evidencia
 
 ```
