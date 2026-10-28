@@ -1,0 +1,206 @@
+La implementación de Builder y Abstract Factory (git status)
+
+mgonz@Compi MINGW64 /d/WorkShopflow/shopflow-base/shopflow-base (master)
+$ git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   .classpath
+        new file:   .project
+        new file:   .settings/org.eclipse.core.resources.prefs
+        new file:   .settings/org.eclipse.jdt.apt.core.prefs
+        new file:   .settings/org.eclipse.jdt.core.prefs
+        new file:   .settings/org.eclipse.m2e.core.prefs
+        new file:   .settings/org.springframework.ide.eclipse.prefs
+        new file:   README.md
+        new file:   pom.xml
+        new file:   src/main/java/co/edu/unbosque/shopflow/ShopflowApplication.j
+ava
+        new file:   src/main/java/co/edu/unbosque/shopflow/catalogo/CatalogoRemo
+to.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/catalogo/Producto.jav
+a
+        new file:   src/main/java/co/edu/unbosque/shopflow/catalogo/ServicioCata
+logo.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/comun/AccesoDenegadoE
+xception.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/comun/ManejadorErrore
+s.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/config/OpenApiConfig.
+java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/legacypay/Le
+gacyPayClient.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/legacypay/Le
+gacyPayTimeoutException.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/quickpay/Qui
+ckPayRequest.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/quickpay/Qui
+ckPayResult.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/quickpay/Qui
+ckPaySdk.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/externos/quickpay/Qui
+ckPayStatus.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/Calculado
+raImpuestos.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/Comproban
+te.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/FabricaFa
+cturacion.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/Generador
+Comprobante.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/ServicioF
+acturacion.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/Validador
+Identificacion.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/colombia/
+CalculadoraColombia.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/colombia/
+FabricaColombia.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/colombia/GeneradorDIAN.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/colombia/ValidadorColombia.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/mexico/CalculadoraMexico.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/mexico/FabricaMexico.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/mexico/GeneradorCFDI.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/mexico/ValidadorMexico.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/notificaciones/BandejaNotificaciones.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pagos/PasarelaDePago.
+java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pagos/PasarelaNoDispo
+nibleException.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pagos/ResultadoPago.j
+ava
+        new file:   src/main/java/co/edu/unbosque/shopflow/pedidos/ItemPedido.ja
+va
+        new file:   src/main/java/co/edu/unbosque/shopflow/pedidos/Pedido.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pedidos/PedidoController.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pedidos/PedidoRequest.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/pedidos/PedidoService.java
+        new file:   src/main/resources/application.properties
+        new file:   target/classes/META-INF/MANIFEST.MF
+        new file:   target/classes/META-INF/maven/co.edu.unbosque/shopflow/pom.properties
+        new file:   target/classes/META-INF/maven/co.edu.unbosque/shopflow/pom.xml
+        new file:   target/classes/application.properties
+        new file:   target/classes/co/edu/unbosque/shopflow/ShopflowApplication.
+class
+        new file:   target/classes/co/edu/unbosque/shopflow/catalogo/CatalogoRem
+oto.class
+        new file:   target/classes/co/edu/unbosque/shopflow/catalogo/Producto.cl
+ass
+        new file:   target/classes/co/edu/unbosque/shopflow/catalogo/ServicioCat
+alogo.class
+        new file:   target/classes/co/edu/unbosque/shopflow/comun/AccesoDenegado
+Exception.class
+        new file:   target/classes/co/edu/unbosque/shopflow/comun/ManejadorError
+es.class
+        new file:   target/classes/co/edu/unbosque/shopflow/config/OpenApiConfig
+.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/legacypay/L
+egacyPayClient.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/legacypay/L
+egacyPayTimeoutException.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/quickpay/Qu
+ickPayRequest.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/quickpay/Qu
+ickPayResult.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/quickpay/Qu
+ickPaySdk.class
+        new file:   target/classes/co/edu/unbosque/shopflow/externos/quickpay/Qu
+ickPayStatus.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/Calculad
+oraImpuestos.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/Comproba
+nte.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/FabricaF
+acturacion.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/Generado
+rComprobante.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/Servicio
+Facturacion.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/Validado
+rIdentificacion.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/colombia
+/CalculadoraColombia.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/colombia
+/FabricaColombia.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/colombia
+/GeneradorDIAN.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/colombia
+/ValidadorColombia.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/mexico/CalculadoraMexico.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/mexico/FabricaMexico.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/mexico/GeneradorCFDI.class
+        new file:   target/classes/co/edu/unbosque/shopflow/facturacion/mexico/ValidadorMexico.class
+        new file:   target/classes/co/edu/unbosque/shopflow/notificaciones/BandejaNotificaciones$NotificacionEnviada.class
+        new file:   target/classes/co/edu/unbosque/shopflow/notificaciones/BandejaNotificaciones.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pagos/PasarelaDePago.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pagos/PasarelaNoDisponibleException.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pagos/ResultadoPago.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/ItemPedido.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/Pedido$Builder.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/Pedido.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/PedidoController.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/PedidoReques
+t$ItemRequest.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/PedidoReques
+t.class
+        new file:   target/classes/co/edu/unbosque/shopflow/pedidos/PedidoServic
+e.class
+
+
+Commit de Builder y Abstract Factory
+
+git commit -m "Implementar Builder y Abstract Factory Colombia Mexico"
+
+
+git status después del commit
+
+mgonz@Compi MINGW64 /d/WorkShopflow/shopflow-base/shopflow-base (main)
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+
+Implementación de las clases Perú (git status)
+
+mgonz@Compi MINGW64 /d/WorkShopflow/shopflow-base/shopflow-base (main)
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/peru/Calc
+uladoraPeru.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/peru/Fabr
+icaPeru.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/peru/GeneradorSUNAT.java
+        new file:   src/main/java/co/edu/unbosque/shopflow/facturacion/peru/ValidadorPeru.java
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        target/classes/co/edu/unbosque/shopflow/facturacion/peru/
+
+
+Commit de las clases Perú
+
+git commit -m "Agregar soporte Peru con Abstract Factory"
+[main 665d563] Agregar soporte Peru con Abstract Factory
+ 4 files changed, 111 insertions(+)
+ create mode 100644 src/main/java/co/edu/unbosque/shopflow/facturacion/peru/CalculadoraPeru.java
+ create mode 100644 src/main/java/co/edu/unbosque/shopflow/facturacion/peru/FabricaPeru.java
+ create mode 100644 src/main/java/co/edu/unbosque/shopflow/facturacion/peru/GeneradorSUNAT.java
+ create mode 100644 src/main/java/co/edu/unbosque/shopflow/facturacion/peru/ValidadorPeru.java
+
+
+La evidencia: La salida del commit del reto, que debe mostrar solo archivos nuevos
+
+mgonz@Compi MINGW64 /d/WorkShopflow/shopflow-base/shopflow-base (main)
+$ git diff --stat HEAD~1
+ .../shopflow/facturacion/peru/CalculadoraPeru.java | 19 ++++++++++
+ .../shopflow/facturacion/peru/FabricaPeru.java     | 41 ++++++++++++++++++++++
+ .../shopflow/facturacion/peru/GeneradorSUNAT.java  | 30 ++++++++++++++++
+ .../shopflow/facturacion/peru/ValidadorPeru.java   | 21 +++++++++++
+ 4 files changed, 111 insertions(+)

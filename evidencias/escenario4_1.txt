@@ -1,0 +1,7 @@
+HTTP/1.1 400 
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 37
+Date: Tue, 27 Oct 2026 23:12:38 GMT
+Connection: close
+
+El pedido debe tener al menos un item

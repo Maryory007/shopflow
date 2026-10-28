@@ -1,0 +1,6 @@
+HTTP/1.1 201 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Tue, 27 Oct 2026 23:33:08 GMT
+
+{"id":"PED-20261027-005","clienteId":"CLI-003","documentoCliente":"GODE561231GR8","pais":"MX","contacto":"mar@correo.com","items":[{"sku":"SKU-002","nombre":"Mouse inalámbrico","cantidad":2,"precioUnitario":25.50}],"direccionEnvio":"Calle 73 #16q 17","recogerEnTienda":false,"cupon":null,"notaRegalo":null,"envioExpress":true,"canalNotificacion":"EMAIL","subtotal":51.00,"descuento":0,"comprobante":{"tipo":"CFDI","descripcion":"SAT","subtotal":51.00,"impuesto":8.1600,"total":59.1600,"porcentajeIVA":16}}

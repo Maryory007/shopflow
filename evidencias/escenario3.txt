@@ -1,0 +1,6 @@
+HTTP/1.1 201 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Tue, 27 Oct 2026 23:27:47 GMT
+
+{"id":"PED-20261027-002","clienteId":"CLI-001","documentoCliente":"12345678","pais":"CO","contacto":"mar@correo.com","items":[{"sku":"SKU-001","nombre":"Teclado mecánico","cantidad":2,"precioUnitario":85.00},{"sku":"SKU-002","nombre":"Mouse inalámbrico","cantidad":1,"precioUnitario":25.50}],"direccionEnvio":"Calle 73b #16q 17","recogerEnTienda":false,"cupon":"BOSQUE10","notaRegalo":"Buenos dias","envioExpress":true,"canalNotificacion":"EMAIL","subtotal":175.9500,"descuento":19.5500,"comprobante":{"tipo":"Factura electrónica","descripcion":"DIAN","subtotal":175.9500,"impuesto":33.430500,"total":209.380500,"porcentajeIVA":19}}
