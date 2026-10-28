@@ -2,23 +2,12 @@
 
 Ingeniería de Software 2 · Taller: patrones de diseño creacionales y estructurales en una API REST.
 
-## Cómo ejecutar
-Requisitos: Java 17 o superior y Maven (o un IDE con soporte para Maven).
 
-```bash
-mvn spring-boot:run
-```
-La API queda en `http://localhost:8080`.
-
-## Qué trae este proyecto
-| Paquete | Contenido | ¿Se modifica? |
-|---|---|---|
-| `externos.legacypay`, `externos.quickpay` | SDK simulados de los proveedores de pago | **No** |
-| `catalogo.CatalogoRemoto` | Catálogo de otro equipo (1,5 s por llamada) | **No** |
-| `catalogo.ServicioCatalogo`, `Producto` | Interfaz del catálogo y producto | Provisto |
-| `pagos.PasarelaDePago`, `ResultadoPago`, `PasarelaNoDisponibleException` | Interfaz destino y tipos propios de ShopFlow | Provisto |
-| `pedidos.PedidoRequest` | JSON de entrada de `POST /api/pedidos` | Provisto |
-| `notificaciones.BandejaNotificaciones` | Simula el envío de notificaciones | Provisto |
-| `comun.ManejadorErrores` | Excepciones → códigos HTTP | Provisto |
-
-Todo lo demás (controladores, servicios, configuraciones y las clases de cada patrón) se implementa durante el taller. Las indicaciones están en el documento del taller (instrucciones y anexos A a D).
+| Patrón | Problema en ShopFlow (síntoma) | Participantes GoF → clases | Principio SOLID | Cuándo no usarlo |
+|---|---|---|---|---|
+| **Factory Method** | | | | |
+| **Abstract Factory** | La facturación depende del país. Cada país tiene reglas diferentes de impuestos, validación de identificación y generación de comprobantes. Si se usa lógica condicional por país (if/switch), cada nuevo país obliga a modificar el servicio de facturación y puede mezclar reglas incorrectas (ej. validar México con reglas colombianas). | **Abstract Factory:** FabricaFacturacion.<br><br>**Concrete Factory:** FabricaColombia, FabricaMexico, FabricaPeru.<br><br>**Abstract Products:** CalculadoraImpuestos, ValidadorIdentificacion, GeneradorComprobante.<br><br>**Concrete Products:** CalculadoraColombia, ValidadorColombia, GeneradorDIAN; CalculadoraMexico, ValidadorMexico, GeneradorCFDI; CalculadoraPeru, ValidadorPeru, GeneradorSUNAT.<br><br>**Client:** ServicioFacturacion. | **OCP:** Permite agregar nuevos países creando nuevas fábricas sin modificar ServicioFacturacion.<br><br>**DIP:** El servicio depende de la abstracción FabricaFacturacion, no de implementaciones concretas. | Si solo existe un país o las reglas nunca cambiarán, crear fábricas y familias de objetos agrega complejidad innecesaria. También si las variantes no forman una familia relacionada de objetos. |
+| **Builder** | La creación de un pedido requiere muchos datos obligatorios y opcionales (cliente, documento, país, ítems, dirección, cupón, nota de regalo, envío express, comprobante, etc.). Usar un constructor con muchos parámetros sería difícil de leer y permitiría crear pedidos inválidos. | **Builder:** Pedido.Builder.<br><br>**Product:** Pedido.<br><br>**Director:** No se utiliza un Director independiente; PedidoService coordina la construcción llamando al Builder.<br><br>**Client:** PedidoService. | **SRP:** La construcción y validación del objeto quedan separadas de la representación del pedido.<br><br>**OCP:** Se pueden agregar nuevos atributos opcionales sin crear múltiples constructores.<br><br>**Evita Telescoping Constructor:** Evita constructores con demasiados parámetros. | Si el objeto tiene pocos atributos obligatorios y casi no tiene opciones configurables, un constructor simple o un record puede ser más claro. También si el objeto nunca necesita validaciones durante su creación. |
+| **Adapter** | | | | |
+| **Decorator** | | | | |
+| **Proxy** | | | | |
