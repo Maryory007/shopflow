@@ -73,49 +73,6 @@ Con un constructor largo es fácil invertir dos `String`; con setters, el pedido
 
 #### Diagrama de clases
 
-```mermaid
-classDiagram
-    class Pedido {
-        <<Product>>
-        -String id
-        -String clienteId
-        -String pais
-        -List~ItemPedido~ items
-        -BigDecimal subtotal
-        -BigDecimal descuento
-        -Pedido(Builder)
-        +getId() String
-        +getSubtotal() BigDecimal
-        +getDescuento() BigDecimal
-    }
-    class PedidoBuilder["Pedido.Builder"] {
-        <<Builder>>
-        +Builder(clienteId, documentoCliente, pais, contacto, items)
-        +direccionEnvio(String) Builder
-        +recogerEnTienda(Boolean) Builder
-        +cupon(String) Builder
-        +notaRegalo(String) Builder
-        +envioExpress(Boolean) Builder
-        +canalNotificacion(String) Builder
-        +build() Pedido
-    }
-    class PedidoService {
-        <<Director>>
-        +crear(PedidoRequest) Pedido
-    }
-    class ItemPedido {
-        <<record>>
-        sku
-        nombre
-        cantidad
-        precioUnitario
-    }
-    Pedido +-- PedidoBuilder
-    PedidoBuilder ..> Pedido : build() crea
-    PedidoService ..> PedidoBuilder : dirige la construcción
-    Pedido o-- ItemPedido
-```
-
 #### Endpoint que lo evidencia
 
 ```
