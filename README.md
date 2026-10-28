@@ -8,7 +8,7 @@ Ingeniería de Software 2 · Taller: patrones de diseño creacionales y estructu
 
 ### Integrantes y roles
 
-| Rol | Integrante | Patrones (ronda 1 → ronda 2) | Reto de extensión |
+| Rol | Integrante | Patrones | Reto de extensión |
 |---|---|---|---|
 | A | Maryory González Rendón | Builder → Abstract Factory | A · Perú (Abstract Factory) |
 | B | Andrés Felipe González | Adapter → Decorator | B · Métricas (Decorator) |
