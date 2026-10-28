@@ -71,9 +71,6 @@ Con un constructor largo es fácil invertir dos `String`; con setters, el pedido
 
 `ItemPedido` es un `record` (sku, nombre, cantidad y precio unitario). El precio se toma del catálogo, no del cliente. El cupón de prueba `BOSQUE10` aplica 10 % de descuento sobre el subtotal.
 
-#### Diagrama de clases
-
-Insertar diagrama 
 #### Endpoint que lo evidencia
 
 ```
