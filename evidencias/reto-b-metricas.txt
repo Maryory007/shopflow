@@ -1,0 +1,9 @@
+=== Commits del rol B ===
+029079a Reto B: decorador MetricasPago (tasa de aprobación por pasarela)
+d788b0b Rol B: Decorator con ReintentoPago, AuditoriaPago, endpoint de auditoría y ReintentoPagoTest
+3d49688 Merge pull request #1 from Maryory007/rol-b
+
+=== Cambios del commit del reto: git diff --stat HEAD~1 HEAD ===
+ .../shopflow/pagos/ConfiguracionPagos.java         |  3 +-
+ .../shopflow/pagos/decoradores/MetricasPago.java   | 46 ++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 1 deletion(-)
