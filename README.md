@@ -36,7 +36,7 @@ La API queda disponible en `http://localhost:8080`.
 | **Abstract Factory** | La facturación depende del país. Cada país tiene reglas distintas de impuestos, validación de identificación y comprobante. Con lógica condicional por país (`if`/`switch`), cada país nuevo obliga a modificar el servicio de facturación y se pueden mezclar reglas (por ejemplo, validar un pedido de México con reglas colombianas). | **Abstract Factory:** `FabricaFacturacion`.<br>**Concrete Factory:** `FabricaColombia`, `FabricaMexico`, `FabricaPeru`.<br>**Abstract Products:** `CalculadoraImpuestos`, `ValidadorIdentificacion`, `GeneradorComprobante`.<br>**Concrete Products:** `CalculadoraColombia`, `ValidadorColombia`, `GeneradorDIAN`; `CalculadoraMexico`, `ValidadorMexico`, `GeneradorCFDI`; `CalculadoraPeru`, `ValidadorPeru`, `GeneradorSUNAT`.<br>**Client:** `ServicioFacturacion`. | **OCP:** un país nuevo es una fábrica nueva, sin modificar `ServicioFacturacion`.<br>**DIP:** el servicio depende de la abstracción `FabricaFacturacion`, no de las clases de cada país. | Cuando no hay familias (un solo país) o cuando la familia cambia con frecuencia: agregar un producto nuevo a la familia obliga a modificar la interfaz y todas las fábricas concretas. |
 | **Builder** | Un pedido tiene 4 datos obligatorios, al menos un ítem y 6 opciones (dirección, recoger en tienda, cupón, nota de regalo, envío express, canal de notificación), con reglas que dependen unas de otras. Un constructor largo permite confundir el orden de dos `String`; con setters, el pedido existe incompleto y puede quedar inválido. | **Builder:** `Pedido.Builder`.<br>**Product:** `Pedido` (inmutable, constructor privado).<br>**Director:** `PedidoService.crear()`, que traduce el JSON recibido a llamadas al builder. | **SRP:** el producto representa el pedido y el builder se encarga de construirlo y validarlo.<br>**OCP:** agregar una opción nueva no obliga a crear más constructores. | Para objetos con dos o tres parámetros, todos obligatorios: el builder duplica código sin aportar nada y hay que mantenerlo cada vez que cambian los atributos. |
 | **Adapter** | Dos proveedores con SDK que no se pueden modificar y no coinciden entre sí ni con ShopFlow. Sin patrón, centavos, códigos "00…" y enums quedarían regados por la lógica de negocio. | <br>**Target:** `PasarelaDePago` <br>**Adapters:** `LegacyPayAdapter`, `QuickPayAdapter`. <br>**Adaptees:** `LegacyPayClient`, `QuickPaySdk`. <br>**Client:** `PedidoService`.| <br>**SRP:** la traducción de montos, respuestas y excepciones vive en una sola clase por proveedor.<br>**OCP:** un proveedor nuevo es un adapter nuevo, sin tocar PedidoService. |Cuando se controlan ambas interfaces: es más simple alinearlas. Y cuando la intención es simplificar un subsistema completo: eso es Facade. |
-| **Decorator** | LegacyPay falla con timeout el 30 % de las veces, así que conviene reintentar; auditoría exige registrar cada cobro de los dos proveedores, y en pruebas los reintentos deben poder apagarse. Con herencia harían falta seis subclases (dos proveedores por tres combinaciones, como `LegacyPayConReintentoYAuditoria`), y cada capa nueva duplicaría la cuenta. | **Component:** `PasarelaDePago`.<br>Concrete Component: `LegacyPayAdapter`, `QuickPayAdapterv`.<br>**Decorator:** `PasarelaDecorator` (abstracta).<br>**Concrete Decorators:** `ReintentoPago`, `AuditoriaPago`, `MetricasPago`. | **OCP:** una capa nueva es una clase nueva; solo se toca ConfiguracionPagos para agregarla.<br>SRP: cada decorador hace una sola cosa (reintentar, auditar o medir).<br>LSP: una pasarela decorada se usa donde se espera cualquier PasarelaDePago. | Cuando las combinaciones son pocas y fijas (dos subclases bastan), cuando el cliente depende de los tipos concretos, o cuando una capa necesita saber qué otras capas hay en la cadena. Muchas capas dificultan la depuración. |
+| **Decorator** | LegacyPay falla con timeout el 30 % de las veces, así que conviene reintentar; auditoría exige registrar cada cobro de los dos proveedores, y en pruebas los reintentos deben poder apagarse. Con herencia harían falta seis subclases (dos proveedores por tres combinaciones, como `LegacyPayConReintentoYAuditoria`), y cada capa nueva duplicaría la cuenta. | **Component:** `PasarelaDePago`.<br>**Concrete Component:** `LegacyPayAdapter`, `QuickPayAdapter`.<br>**Decorator:** `PasarelaDecorator` (abstracta).<br>**Concrete Decorators:** `ReintentoPago`, `AuditoriaPago`, `MetricasPago`. | **DIP:** el dominio depende de `PasarelaDePago`, una abstracción propia, y no del SDK.<br>**SRP:** la traducción de montos, respuestas y excepciones vive en una sola clase por proveedor <br>**OCP:** una capa nueva es una clase nueva; solo se toca ConfiguracionPagos para agregarla.<br>SRP: cada decorador hace una sola cosa (reintentar, auditar o medir).<br>LSP: una pasarela decorada se usa donde se espera cualquier PasarelaDePago. | Cuando las combinaciones son pocas y fijas (dos subclases bastan), cuando el cliente depende de los tipos concretos, o cuando una capa necesita saber qué otras capas hay en la cadena. Muchas capas dificultan la depuración. |
 | **Proxy** | _Pendiente (Rol C)_ | | | |
 
 ---
@@ -102,7 +102,7 @@ Respuestas relevantes:
 | Nota de regalo de más de 140 caracteres | `400` |
 | SKU inexistente | `404` |
 
-Prueba unitaria: `PedidoBuilderTest` (`src/test/java/.../pedidos/`).
+Prueba unitaria: `PedidoBuilderTest` (`src/test/java/co/edu/unbosque/shopflow/`).
 
 ---
 
@@ -153,7 +153,7 @@ El país se indica con su código en el campo `pais` (`CO`, `MX` o `PE`).
 | `"pais": "MX"` con la cédula colombiana `1020304050` | `400` (documento inválido para MX) |
 | `"pais": "PE"` con RUC de 11 dígitos | Factura electrónica (SUNAT), IGV 18 % |
 
-Prueba unitaria: `ServicioFacturacionTest` (`src/test/java/.../facturacion/`).
+Prueba unitaria: `ServicioFacturacionTest` (`src/test/java/co/edu/unbosque/shopflow/`).
 
 ---
 
@@ -205,7 +205,7 @@ Cuerpo: `{"proveedor": "LEGACYPAY"}` o `{"proveedor": "QUICKPAY"}`.
  
 El mismo pedido se paga con cualquiera de los dos proveedores sin cambiar `PedidoService`: solo cambia la pasarela que se toma del mapa por proveedor.
  
-Prueba unitaria: `LegacyPayAdapterTest` (`src/test/java/.../pagos/`). Con `new LegacyPayClient(1.0)` (siempre falla) verifica que el adapter lanza `PasarelaNoDisponibleException` y no la excepción del SDK.
+Prueba unitaria: `LegacyPayAdapterTest` (`src/test/java/co/edu/unbosque/shopflow/ Con `new LegacyPayClient(1.0)` (siempre falla) verifica que el adapter lanza `PasarelaNoDisponibleException` y no la excepción del SDK.
  
 ---
  
@@ -260,7 +260,7 @@ POST /api/pedidos/{id}/pago
  
 Cada entrada de la auditoría tiene proveedor, referencia, monto, resultado, mensaje y duración en milisegundos. Con los reintentos activos, la gran mayoría de los pagos con LegacyPay se aprueba a pesar de los timeouts, y hay una sola entrada de auditoría por cada cobro.
  
-Prueba unitaria: `ReintentoPagoTest` (`src/test/java/.../pagos/`). Una pasarela falsa falla dos veces y aprueba la tercera; la prueba verifica que el pago se aprueba y que hubo exactamente tres llamadas.
+Prueba unitaria: `ReintentoPagoTest` (`src/test/java/co/edu/unbosque/shopflow/`). Una pasarela falsa falla dos veces y aprueba la tercera; la prueba verifica que el pago se aprueba y que hubo exactamente tres llamadas.
  
 ---
 
