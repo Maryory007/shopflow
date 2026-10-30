@@ -360,11 +360,13 @@ _Respuesta pendiente._
 
 **3. Invierta el orden de los decoradores (reintento por fuera de la auditoría) y pague cinco pedidos con LegacyPay. ¿Qué cambia en `GET /api/pagos/auditoria`? ¿Qué orden conviene y por qué?**
 
-Con el orden por defecto, `AuditoriaPago(ReintentoPago(LegacyPayAdapter))`, la auditoría ve el cobro completo: hay **una entrada por cobro** y la duración incluye los reintentos.
+Con el orden normal (auditoría por fuera del reintento), la auditoría guarda **un registro por cada pago**. Al invertir el orden, guarda **un registro por cada intento**, incluidos los que fallaron por timeout.
  
-Al invertirlo, `ReintentoPago(AuditoriaPago(LegacyPayAdapter))`, la auditoría queda pegada al adapter y registra **cada intento**. Los timeouts aparecen como entradas fallidas y luego aparece la del intento que sí respondió. Con cinco pagos y un 30 % de timeout se esperan alrededor de siete entradas en lugar de cinco. En nuestra prueba obtuvimos _(pendiente: número observado)_ entradas para 5 pagos.
+| Orden | Pagos | Registros en la auditoría |
+|---|---|---|
+| Auditoría por fuera | 5 | 5 (todos aprobados) |
+| Reintento por fuera | 15 | 20 (14 aprobados + 6 «no disponible») |
  
-Conviene la **auditoría por fuera**. Auditoría exige registrar *cobros*, que son la operación de negocio, no los intentos técnicos. Además, el criterio de aceptación pide exactamente una entrada por cobro. Si se quisiera medir la inestabilidad del proveedor, eso le corresponde a otra capa (por ejemplo, métricas por intento), no a la auditoría. El ejemplo muestra que en Decorator el orden de las capas cambia el comportamiento.
 
 **4. `CatalogoCacheProxy` y `AuditoriaPago` tienen casi la misma estructura: implementan la interfaz y envuelven un objeto. ¿Por qué uno es Proxy y el otro Decorator?**
 
