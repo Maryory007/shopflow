@@ -32,12 +32,12 @@ La API queda disponible en `http://localhost:8080`.
 
 | Patrón | Problema en ShopFlow (síntoma) | Participantes GoF → clases | Principio SOLID | Cuándo no usarlo |
 |---|---|---|---|---|
-| **Factory Method** | _Pendiente (Rol C)_ | | | |
+| **Factory Method** | Al aprobar un pago se debe notificar usando el canal elegido. Crear la notificación con condicionales dentro de `PedidoService` acoplaría el flujo de pago a cada canal y obligaría a modificarlo al agregar WhatsApp. | **Product:** `Notificacion`.<br>**Concrete Products:** `NotificacionEmail`, `NotificacionSms`, `NotificacionWhatsApp`.<br>**Creator:** `Notificador` (`notificarPagoAprobado()` usa el producto creado).<br>**Concrete Creators:** `NotificadorEmail`, `NotificadorSms`, `NotificadorWhatsApp`.<br>**Client:** `PedidoService`. | **OCP:** un canal nuevo se agrega mediante un creador y producto concretos.<br>**DIP:** `PedidoService` recibe `List<Notificador>` y usa las abstracciones. | Cuando solo existe un canal estable: la jerarquía de creadores y productos agregaría más complejidad que crear directamente el único producto. |
 | **Abstract Factory** | La facturación depende del país. Cada país tiene reglas distintas de impuestos, validación de identificación y comprobante. Con lógica condicional por país (`if`/`switch`), cada país nuevo obliga a modificar el servicio de facturación y se pueden mezclar reglas (por ejemplo, validar un pedido de México con reglas colombianas). | **Abstract Factory:** `FabricaFacturacion`.<br>**Concrete Factory:** `FabricaColombia`, `FabricaMexico`, `FabricaPeru`.<br>**Abstract Products:** `CalculadoraImpuestos`, `ValidadorIdentificacion`, `GeneradorComprobante`.<br>**Concrete Products:** `CalculadoraColombia`, `ValidadorColombia`, `GeneradorDIAN`; `CalculadoraMexico`, `ValidadorMexico`, `GeneradorCFDI`; `CalculadoraPeru`, `ValidadorPeru`, `GeneradorSUNAT`.<br>**Client:** `ServicioFacturacion`. | **OCP:** un país nuevo es una fábrica nueva, sin modificar `ServicioFacturacion`.<br>**DIP:** el servicio depende de la abstracción `FabricaFacturacion`, no de las clases de cada país. | Cuando no hay familias (un solo país) o cuando la familia cambia con frecuencia: agregar un producto nuevo a la familia obliga a modificar la interfaz y todas las fábricas concretas. |
 | **Builder** | Un pedido tiene 4 datos obligatorios, al menos un ítem y 6 opciones (dirección, recoger en tienda, cupón, nota de regalo, envío express, canal de notificación), con reglas que dependen unas de otras. Un constructor largo permite confundir el orden de dos `String`; con setters, el pedido existe incompleto y puede quedar inválido. | **Builder:** `Pedido.Builder`.<br>**Product:** `Pedido` (inmutable, constructor privado).<br>**Director:** `PedidoService.crear()`, que traduce el JSON recibido a llamadas al builder. | **SRP:** el producto representa el pedido y el builder se encarga de construirlo y validarlo.<br>**OCP:** agregar una opción nueva no obliga a crear más constructores. | Para objetos con dos o tres parámetros, todos obligatorios: el builder duplica código sin aportar nada y hay que mantenerlo cada vez que cambian los atributos. |
 | **Adapter** | Dos proveedores con SDK que no se pueden modificar y no coinciden entre sí ni con ShopFlow. Sin patrón, centavos, códigos "00…" y enums quedarían regados por la lógica de negocio. | **Target:** `PasarelaDePago`.<br>**Adapters:** `LegacyPayAdapter`, `QuickPayAdapter`.<br>**Adaptees:** `LegacyPayClient`, `QuickPaySdk`.<br>**Client:** `PedidoService`. | **DIP:** el dominio depende de `PasarelaDePago`, una abstracción propia, y no del SDK.<br>**SRP:** la traducción de montos, respuestas y excepciones vive en una sola clase por proveedor.<br>**OCP:** un proveedor nuevo es un adapter nuevo, sin tocar `PedidoService`. | Cuando se controlan ambas interfaces: es más simple alinearlas. Y cuando la intención es simplificar un subsistema completo: eso es Facade. |
 | **Decorator** | LegacyPay falla con timeout el 30 % de las veces, así que conviene reintentar; auditoría exige registrar cada cobro de los dos proveedores, y en pruebas los reintentos deben poder apagarse. Con herencia harían falta seis subclases (dos proveedores por tres combinaciones, como `LegacyPayConReintentoYAuditoria`), y cada capa nueva duplicaría la cuenta. | **Component:** `PasarelaDePago`.<br>**Concrete Component:** `LegacyPayAdapter`, `QuickPayAdapter`.<br>**Decorator:** `PasarelaDecorator` (abstracta).<br>**Concrete Decorators:** `ReintentoPago`, `AuditoriaPago`, `MetricasPago`. | **OCP:** una capa nueva es una clase nueva; solo se toca `ConfiguracionPagos` para agregarla.<br>**SRP:** cada decorador hace una sola cosa (reintentar, auditar o medir).<br>**LSP:** una pasarela decorada se usa donde se espera cualquier `PasarelaDePago`. | Cuando las combinaciones son pocas y fijas (dos subclases bastan), cuando el cliente depende de los tipos concretos, o cuando una capa necesita saber qué otras capas hay en la cadena. Muchas capas dificultan la depuración. |
-| **Proxy** | _Pendiente (Rol C)_ | | | |
+| **Proxy** | `CatalogoRemoto` tarda 1,5 s por llamada y el cambio de precios requiere rol ADMIN. Sin intermediarios, se repetiría la consulta costosa y cada controlador tendría que imponer su propia autorización. | **Subject:** `ServicioCatalogo`.<br>**Real Subject:** `CatalogoRemoto`.<br>**Cache Proxy:** `CatalogoCacheProxy`.<br>**Protection Proxy:** `CatalogoProteccionProxy`.<br>**Client:** `PedidoService` y `ProductoController`; la configuración publica la caché como `ServicioCatalogo`. | **SRP:** caché y autorización quedan fuera del catálogo remoto.<br>**OCP/LSP:** los proxies se pueden usar como `ServicioCatalogo` y no alteran el objeto real. | Cuando el objeto es local y barato, la indirección y el estado de caché no compensan su costo; tampoco debe usarse para agregar funciones ajenas al control de acceso, que corresponden a Decorator. |
 
 ---
 
@@ -266,11 +266,107 @@ Prueba unitaria: `ReintentoPagoTest` (`src/test/java/co/edu/unbosque/shopflow/`)
 
 ### 3.5 Proxy
 
-_Pendiente (Rol C)._
+#### Problema que resuelve
+
+`CatalogoRemoto`, que pertenece a otro equipo, introduce 1,5 segundos de latencia por llamada. Además, el cambio de precios es una operación exclusiva de ADMIN. Dos proxies conservan la interfaz `ServicioCatalogo`: uno reutiliza resultados y actualiza su caché cuando cambia el precio; el otro permite buscar y listar a cualquier rol, pero bloquea las modificaciones de quien no sea ADMIN.
+
+#### Participantes GoF
+
+| Participante | Clase | Responsabilidad |
+|---|---|---|
+| Subject | `ServicioCatalogo` | Contrato común para consultas y actualización. |
+| Real Subject | `CatalogoRemoto` | Simula el catálogo remoto y la latencia. |
+| Cache Proxy | `CatalogoCacheProxy` | Consulta el real si el SKU no está en el `ConcurrentHashMap`; las actualizaciones sincronizan el precio almacenado. |
+| Protection Proxy | `CatalogoProteccionProxy` | Recibe el rol de la solicitud y permite actualizar solo a ADMIN. |
+| Configuración | `ConfiguracionCatalogo` | Publica `CatalogoCacheProxy(new CatalogoRemoto())` como `ServicioCatalogo`. |
+| Client | `PedidoService`, `ProductoController` | Trabajan contra `ServicioCatalogo`; el controlador crea el proxy de protección con `X-Rol`. |
+
+#### Endpoints que lo evidencian
+
+```
+GET /api/productos
+GET /api/productos/{sku}
+PUT /api/productos/{sku}/precio
+```
+
+El `PUT` recibe `{"precio": 99.90}` y el encabezado `X-Rol`. Sin `X-Rol` se aplica `CLIENTE` y responde `403`; con `X-Rol: ADMIN` responde `200`. La siguiente consulta devuelve el precio actualizado desde la caché. La primera consulta a un SKU incurre en la latencia del real y las siguientes lecturas usan el proxy.
+
+Pruebas unitarias: `CatalogoProxyTest` comprueba la reutilización de la caché, la actualización del valor cacheado y el rechazo de un cambio por un usuario CLIENTE.
+
+#### Diagrama de clases
+
+```mermaid
+classDiagram
+    class ServicioCatalogo {
+        <<interface>>
+        +buscar(sku)
+        +listar()
+        +actualizarPrecio(sku, nuevoPrecio)
+    }
+    ServicioCatalogo <|.. CatalogoRemoto
+    ServicioCatalogo <|.. CatalogoCacheProxy
+    ServicioCatalogo <|.. CatalogoProteccionProxy
+    CatalogoCacheProxy --> ServicioCatalogo : delega
+    CatalogoProteccionProxy --> ServicioCatalogo : delega
+    ConfiguracionCatalogo ..> CatalogoCacheProxy : configura
+    ProductoController --> ServicioCatalogo
+    PedidoService --> ServicioCatalogo
+```
 
 ### 3.6 Factory Method
 
-_Pendiente (Rol C)._
+#### Problema que resuelve
+
+Después de que el pago es aprobado, se construye un mensaje común con el identificador del pedido y el total pagado. El canal elegido determina el producto concreto: el correo exige `@` y agrega un asunto, el SMS limita el mensaje a 160 caracteres y WhatsApp exige un número internacional y antepone `✅`. `PedidoService` selecciona un `Notificador` por canal y no instancia los productos concretos.
+
+#### Participantes GoF
+
+| Participante | Clase | Responsabilidad |
+|---|---|---|
+| Product | `Notificacion` | Contrato `enviar(destino, mensaje)`. |
+| Concrete Products | `NotificacionEmail`, `NotificacionSms`, `NotificacionWhatsApp` | Aplican las reglas propias de cada canal y registran el envío en `BandejaNotificaciones`. |
+| Creator | `Notificador` | `notificarPagoAprobado()` arma el mensaje común, invoca el método fábrica y envía. |
+| Concrete Creators | `NotificadorEmail`, `NotificadorSms`, `NotificadorWhatsApp` | Implementan `crearNotificacion()` y seleccionan el producto. |
+| Client | `PedidoService` | Inyecta e indexa los creadores por canal; notifica después de registrar un pago aprobado. |
+
+#### Endpoint que lo evidencia
+
+```
+GET /api/notificaciones
+```
+
+Un pago aprobado crea una notificación con el canal del pedido, el destinatario y un mensaje que contiene el total pagado. Si se omite el canal, se usa `EMAIL`; un canal no soportado hace que `POST /api/pedidos` responda `400`.
+
+Prueba unitaria: `FactoryMethodNotificacionTest` verifica las reglas de WhatsApp, correo y SMS.
+
+#### Diagrama de clases
+
+```mermaid
+classDiagram
+    class Notificacion {
+        <<interface>>
+        +enviar(destino, mensaje)
+    }
+    class Notificador {
+        <<abstract>>
+        +notificarPagoAprobado(destino, pedidoId, total)
+        +canal()
+        #crearNotificacion()
+    }
+    Notificador <|-- NotificadorEmail
+    Notificador <|-- NotificadorSms
+    Notificador <|-- NotificadorWhatsApp
+    Notificacion <|.. NotificacionEmail
+    Notificacion <|.. NotificacionSms
+    Notificacion <|.. NotificacionWhatsApp
+    NotificadorEmail ..> NotificacionEmail : crea
+    NotificadorSms ..> NotificacionSms : crea
+    NotificadorWhatsApp ..> NotificacionWhatsApp : crea
+    NotificacionEmail --> BandejaNotificaciones : registra
+    NotificacionSms --> BandejaNotificaciones : registra
+    NotificacionWhatsApp --> BandejaNotificaciones : registra
+    PedidoService --> Notificador : selecciona por canal
+```
 
 ---
 
@@ -368,7 +464,23 @@ También se guarda en `evidencias/reto-b-metricas.txt`.
 
 ### Reto C · WhatsApp (Factory Method)
 
-_Pendiente (Rol C)._
+El canal WhatsApp utiliza un producto y un creador concretos:
+
+```
+notificaciones/
+├── NotificacionWhatsApp.java
+└── NotificadorWhatsApp.java
+```
+
+El producto valida un número internacional con indicativo, como `+573001234567`, y antepone `✅` al mensaje. Al seleccionar `"canalNotificacion": "WHATSAPP"` en un pedido, el creador correspondiente registra la notificación después de un pago aprobado. Las clases de los canales existentes y `PedidoService` no necesitan cambios para añadir este producto de reto; el cliente ya delega la selección a la lista de creadores.
+
+**Salida de consola al aprobar el pago:**
+
+```
+[Métricas] QUICKPAY · cobros: 1 · aprobados: 1 · tasa de aprobación: 100,0 %
+```
+
+**Evidencia:** la salida de consola está en `evidencias/reto-c-consola.txt`; las respuestas de `POST /api/pedidos`, `POST /api/pedidos/{id}/pago` y `GET /api/notificaciones` están en `evidencias/reto-c-whatsapp.txt`.
 
 ---
 
@@ -378,9 +490,13 @@ _Pendiente (Rol C)._
 
 _Respuesta pendiente._
 
+**Aporte Rol C:** sin Factory Method, `PedidoService` tendría una rama por canal para elegir el tipo de notificación; sin Abstract Factory, el flujo de facturación tendría al menos tres puntos de decisión por país (impuestos, validación y comprobante). Con Colombia y México ya habría al menos cuatro decisiones entre crear la factura y enviar la notificación. Abrir Perú obligaría a modificar las tres decisiones de facturación y agregar WhatsApp obligaría a modificar la decisión del canal. Con las abstracciones actuales, cada país agrega su fábrica/familia y cada canal su producto/creador; el servicio cliente conserva el mismo flujo.
+
 **2. ¿Por qué las notificaciones usan Factory Method y la facturación usa Abstract Factory? Responda con la diferencia entre crear un producto y crear una familia de productos.**
 
 _Respuesta pendiente._
+
+**Aporte Rol C:** Factory Method crea un producto de una sola familia de notificaciones: cada `Notificador` concreto elige el producto `Notificacion` que necesita. Abstract Factory crea una familia coherente de productos de facturación de un país (cálculo de impuestos, validación y comprobante). Por eso el canal varía con un método fábrica, mientras que el país selecciona la fábrica que produce sus tres componentes compatibles.
 
 **3. Invierta el orden de los decoradores (reintento por fuera de la auditoría) y pague cinco pedidos con LegacyPay. ¿Qué cambia en `GET /api/pagos/auditoria`? ¿Qué orden conviene y por qué?**
 
@@ -394,11 +510,11 @@ Con el orden normal (auditoría por fuera del reintento), la auditoría guarda *
 
 **4. `CatalogoCacheProxy` y `AuditoriaPago` tienen casi la misma estructura: implementan la interfaz y envuelven un objeto. ¿Por qué uno es Proxy y el otro Decorator?**
 
-_Respuesta pendiente._
+**Aporte Rol C:** ambos tienen el mismo contrato y envuelven una implementación. `CatalogoCacheProxy` controla cuándo delega en el catálogo remoto y conserva respuestas para reducir consultas costosas; `AuditoriaPago` delega cada cobro y agrega una responsabilidad de registro. El primero controla el acceso al objeto real (Proxy); el segundo añade comportamiento a una pasarela ya elegida (Decorator).
 
 **5. Si otro sistema cambia un precio directamente en el catálogo remoto, ¿qué problema tiene la caché del proxy? Proponga una solución.**
 
-_Respuesta pendiente._
+**Aporte Rol C:** la caché puede servir el precio anterior si otro sistema cambia el catálogo remoto por fuera del proxy. Para evitarlo, se puede asignar expiración (TTL) a cada entrada, invalidar o actualizar el SKU al recibir eventos de cambio desde el servicio remoto, o consultar periódicamente una versión del catálogo. El proxy ya mantiene coherencia para los cambios hechos por su propio `actualizarPrecio`; los cambios externos requieren invalidación o una política de frescura.
 
 **6. `QuickPayAdapter` convierte `BigDecimal` a `double`. ¿Qué riesgo trae y por qué conviene que esa decisión viva en el adapter y no en el dominio?**
 
@@ -408,7 +524,7 @@ Conviene que la conversión viva en el adapter porque usar `double` es una **exi
 
 **7. ¿En qué parte del proyecto no convenía aplicar un patrón? Justifique con el criterio «cuándo no usarlo» del Anexo A.**
 
-_Respuesta pendiente._
+**Aporte Rol C:** no conviene crear un Proxy para `BandejaNotificaciones`: en este taller es un componente local y ligero que solo mantiene una lista en memoria, sin latencia remota, carga costosa ni permisos diferenciados. Un proxy añadiría indirección sin resolver un problema presente. El Proxy sí se justifica en `ServicioCatalogo`, porque allí la demora remota y la restricción de ADMIN son necesidades concretas.
 
 **8. Para cada patrón, indique el principio SOLID que aplica y cite la clase o la línea de código que lo evidencia.**
 
@@ -422,5 +538,13 @@ _Respuesta pendiente._
 | Decorator | OCP | `MetricasPago` (reto B) se agregó como clase nueva; solo cambió `ConfiguracionPagos`. |
 | Decorator | SRP | `ReintentoPago` solo reintenta, `AuditoriaPago` solo registra y `MetricasPago` solo mide. |
 | Decorator | LSP | `ConfiguracionPagos` entrega objetos decorados como `PasarelaDePago` y `PedidoService` los usa igual que un adapter sin envolver. |
-| Proxy | _Pendiente (Rol C)_ | |
-| Factory Method | _Pendiente (Rol C)_ | |
+| Proxy | OCP y LSP | `ConfiguracionCatalogo` entrega un `CatalogoCacheProxy` como `ServicioCatalogo`; `CatalogoProteccionProxy` también implementa `ServicioCatalogo`, por lo que ambos sustituyen al real. Se agregan controles sin editar `CatalogoRemoto`. |
+| Factory Method | OCP y DIP | `PedidoService` recibe `List<Notificador>` y usa `notificarPagoAprobado()`; los concretos `NotificadorEmail`, `NotificadorSms` y `NotificadorWhatsApp` encapsulan la creación de `Notificacion`. |
+
+## 6. Pruebas
+
+Ejecutar la suite del proyecto con:
+
+```bash
+mvn test
+```
