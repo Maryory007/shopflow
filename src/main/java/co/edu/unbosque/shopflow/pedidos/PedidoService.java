@@ -15,7 +15,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.beans.factory.annotation.Qualifier;
 
+import co.edu.unbosque.shopflow.pagos.PasarelaDePago;
+import co.edu.unbosque.shopflow.pagos.ResultadoPago;
 import co.edu.unbosque.shopflow.facturacion.Comprobante;
 
 @Service
@@ -24,15 +27,19 @@ public class PedidoService {
 	private final ServicioCatalogo servicioCatalogo;
 
 	private final ServicioFacturacion servicioFacturacion;
+	
+	private final Map<String, PasarelaDePago> pasarelas;
 
 	private final Map<String, Pedido> pedidos = new ConcurrentHashMap<>();
 
 	private final AtomicInteger consecutivo = new AtomicInteger(1);
-
-	public PedidoService(ServicioCatalogo servicioCatalogo, ServicioFacturacion servicioFacturacion) {
+	
+	public PedidoService(ServicioCatalogo servicioCatalogo, ServicioFacturacion servicioFacturacion,
+			@Qualifier("pasarelas") Map<String, PasarelaDePago> pasarelas) {
 
 		this.servicioCatalogo = servicioCatalogo;
 		this.servicioFacturacion = servicioFacturacion;
+		this.pasarelas = pasarelas;
 
 	}
 
@@ -106,6 +113,48 @@ public class PedidoService {
 		String fecha = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
 		return String.format("PED-%s-%03d", fecha, consecutivo.getAndIncrement());
+
+	}
+	
+	public Pedido pagar(String id, String proveedor) {
+
+		Pedido pedido = buscarPorId(id);
+
+		if (pedido.estaPagado()) {
+
+			throw new IllegalStateException("El pedido " + id + " ya fue pagado");
+
+		}
+
+		PasarelaDePago pasarela = obtenerPasarela(proveedor);
+
+		ResultadoPago resultado = pasarela.cobrar(pedido.getComprobante().total(), pedido.getId());
+
+		if (!resultado.aprobado()) {
+
+			throw new IllegalStateException(resultado.mensaje());
+
+		}
+
+		pedido.registrarPago(resultado.autorizacion());
+
+		// Aquí el rol C enviará la notificación del pago aprobado (Factory Method).
+
+		return pedido;
+
+	}
+
+	private PasarelaDePago obtenerPasarela(String proveedor) {
+
+		PasarelaDePago pasarela = (proveedor == null) ? null : pasarelas.get(proveedor.toUpperCase());
+
+		if (pasarela == null) {
+
+			throw new IllegalArgumentException("Proveedor de pago no soportado: " + proveedor + ". Use LEGACYPAY o QUICKPAY");
+
+		}
+
+		return pasarela;
 
 	}
 
