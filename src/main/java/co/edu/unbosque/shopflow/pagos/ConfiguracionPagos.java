@@ -10,7 +10,7 @@ import co.edu.unbosque.shopflow.pagos.adaptadores.LegacyPayAdapter;
 import co.edu.unbosque.shopflow.pagos.adaptadores.QuickPayAdapter;
 import co.edu.unbosque.shopflow.pagos.decoradores.AuditoriaPago;
 import co.edu.unbosque.shopflow.pagos.decoradores.ReintentoPago;
-
+import co.edu.unbosque.shopflow.pagos.decoradores.MetricasPago;
 /**
  * Punto de composición de los pagos: el único lugar que conoce las clases concretas.
  * Construye cada adapter, lo envuelve en capas según las propiedades
@@ -48,6 +48,7 @@ public class ConfiguracionPagos {
 		if (auditoria) {
 			pasarela = new AuditoriaPago(pasarela, proveedor, registro);
 		}
+		pasarela = new MetricasPago(pasarela, proveedor);
 
 		return pasarela;
 	}
