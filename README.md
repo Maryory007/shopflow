@@ -337,7 +337,23 @@ pasarela = new MetricasPago(pasarela, proveedor);
 **Evidencia:** salida de `git diff --stat` del commit del reto (un archivo nuevo y el único modificado permitido):
  
 ```
-Pendiente: pegar la salida de git diff --stat HEAD~1
+$ git log --oneline -3
+029079a Reto B: decorador MetricasPago (tasa de aprobación por pasarela)
+d788b0b Rol B: Decorator con ReintentoPago, AuditoriaPago, endpoint de auditoría y ReintentoPagoTest
+3d49688 Merge pull request #1 from Maryory007/rol-b
+ 
+$ git diff --stat HEAD~1 HEAD
+ .../shopflow/pagos/ConfiguracionPagos.java         |  3 +-
+ .../shopflow/pagos/decoradores/MetricasPago.java   | 46 +++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 1 deletion(-)
+```
+ 
+El reto quedó en su propio commit. El único archivo modificado es `ConfiguracionPagos` (el import, la línea `pasarela = new MetricasPago(pasarela, proveedor);` y el comentario del orden de las capas); `MetricasPago` es nuevo.
+ 
+Salida en consola al pagar pedidos con LegacyPay:
+ 
+```
+PENDIENTE: pegar aquí las líneas [Métricas] de la consola de Eclipse
 ```
  
 También se guarda en `evidencias/reto-b-metricas.txt`.
