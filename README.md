@@ -64,7 +64,118 @@ Con un constructor largo es fácil invertir dos `String`; con setters, el pedido
 | Director | `PedidoService.crear()` | Traduce el `PedidoRequest` recibido a llamadas al builder. |
 
 `ItemPedido` es un `record` (sku, nombre, cantidad y precio unitario). El precio se toma del catálogo, no del cliente. El cupón de prueba `BOSQUE10` aplica 10 % de descuento sobre el subtotal.
-
+#### Diagrama de clases
+ 
+```mermaid
+classDiagram
+    direction TB
+    class PedidoController {
+        -pedidoService: PedidoService
+        +PedidoController(PedidoService pedidoService)
+        +crear(PedidoRequest request) ResponseEntity
+        +buscar(String id) ResponseEntity
+    }
+    class PedidoService {
+        <<Director>>
+        -servicioCatalogo: ServicioCatalogo
+        -servicioFacturacion: ServicioFacturacion
+        -pedidos: Map~String, Pedido~
+        -consecutivo: AtomicInteger
+        +PedidoService(ServicioCatalogo servicioCatalogo, ServicioFacturacion servicioFacturacion)
+        +crear(PedidoRequest request) Pedido
+        +buscarPorId(String id) Pedido
+        -generarId() String
+    }
+    class Pedido {
+        <<Product>>
+        -id: String
+        -clienteId: String
+        -documentoCliente: String
+        -pais: String
+        -contacto: String
+        -items: List~ItemPedido~
+        -direccionEnvio: String
+        -recogerEnTienda: Boolean
+        -cupon: String
+        -notaRegalo: String
+        -envioExpress: Boolean
+        -canalNotificacion: String
+        -subtotal: BigDecimal
+        -descuento: BigDecimal
+        -comprobante: Comprobante
+        -Pedido(Builder builder)
+        +asignarComprobante(Comprobante comprobante) void
+        +getters()
+    }
+    class Builder {
+        <<static · Pedido.Builder>>
+        -id: String
+        -clienteId: String
+        -documentoCliente: String
+        -pais: String
+        -contacto: String
+        -items: List~ItemPedido~
+        -direccionEnvio: String
+        -recogerEnTienda: Boolean
+        -cupon: String
+        -notaRegalo: String
+        -envioExpress: Boolean
+        -canalNotificacion: String
+        -subtotal: BigDecimal
+        -descuento: BigDecimal
+        +Builder(String clienteId, String documentoCliente, String pais, String contacto, List~ItemPedido~ items)
+        +id(String id) Builder
+        +direccionEnvio(String direccion) Builder
+        +recogerEnTienda(Boolean valor) Builder
+        +cupon(String cupon) Builder
+        +notaRegalo(String nota) Builder
+        +envioExpress(Boolean valor) Builder
+        +canalNotificacion(String canal) Builder
+        -calcularSubtotal() void
+        -calcularDescuento() void
+        +build() Pedido
+    }
+    class ItemPedido {
+        <<record>>
+        +sku: String
+        +nombre: String
+        +cantidad: Integer
+        +precioUnitario: BigDecimal
+    }
+    class PedidoRequest {
+        <<record>>
+        +clienteId: String
+        +documentoCliente: String
+        +pais: String
+        +contacto: String
+        +items: List~ItemRequest~
+        +direccionEnvio: String
+        +recogerEnTienda: Boolean
+        +cupon: String
+        +notaRegalo: String
+        +envioExpress: Boolean
+        +canalNotificacion: String
+    }
+    class ItemRequest {
+        <<record>>
+        +sku: String
+        +cantidad: int
+    }
+ 
+    PedidoController --> PedidoService : usa
+    PedidoController --> PedidoRequest : recibe
+    PedidoService --> PedidoRequest : lee
+    PedidoService --> Builder : arma el pedido paso a paso
+    PedidoService --> ItemPedido : crea con el precio del catálogo
+    Builder --> Pedido : build() valida y crea
+    Pedido -- Builder : ⊕ clase anidada (Pedido.Builder)
+    PedidoRequest -- ItemRequest : ⊕ clase anidada (PedidoRequest.ItemRequest)
+    Pedido --> "1..*" ItemPedido : items
+```
+ 
+**Notación:** `───>` usa o crea · `── ⊕ clase anidada`: la clase de abajo está dentro de la de arriba (`Pedido.Builder`, `PedidoRequest.ItemRequest`).
+ 
+---
 #### Endpoint que lo evidencia
 
 ```
@@ -136,6 +247,101 @@ Sin el patrón, `ServicioFacturacion` tendría un `if (pais.equals("CO"))` repet
 | Concrete Products | Colombia: `CalculadoraColombia`, `ValidadorColombia`, `GeneradorDIAN`<br>México: `CalculadoraMexico`, `ValidadorMexico`, `GeneradorCFDI`<br>Perú: `CalculadoraPeru`, `ValidadorPeru`, `GeneradorSUNAT` |
 | Client | `ServicioFacturacion` |
 
+#### Diagrama de clases
+
+```mermaid
+classDiagram
+    direction TB
+    class ServicioFacturacion {
+        <<Client>>
+        -fabricas: Map~String, FabricaFacturacion~
+        +ServicioFacturacion(List~FabricaFacturacion~ listaFabricas)
+        +facturar(String pais, String documento, String cliente, BigDecimal subtotal) Comprobante
+    }
+    class FabricaFacturacion {
+        <<interface · AbstractFactory>>
+        +pais() String
+        +crearCalculadora() CalculadoraImpuestos
+        +crearValidador() ValidadorIdentificacion
+        +crearGenerador() GeneradorComprobante
+    }
+    class CalculadoraImpuestos {
+        <<interface · AbstractProduct>>
+        +calcular(BigDecimal subtotal) BigDecimal
+    }
+    class ValidadorIdentificacion {
+        <<interface · AbstractProduct>>
+        +validar(String documento) boolean
+    }
+    class GeneradorComprobante {
+        <<interface · AbstractProduct>>
+        +generar(String cliente, BigDecimal subtotal, BigDecimal impuesto) Comprobante
+    }
+    class Comprobante {
+        <<record>>
+        +tipo: String
+        +descripcion: String
+        +subtotal: BigDecimal
+        +impuesto: BigDecimal
+        +total: BigDecimal
+        +porcentajeIVA: BigDecimal
+    }
+    namespace colombia {
+        class FabricaColombia {
+            <<ConcreteFactory>>
+        }
+        class CalculadoraColombia
+        class ValidadorColombia
+        class GeneradorDIAN
+    }
+    namespace mexico {
+        class FabricaMexico {
+            <<ConcreteFactory>>
+        }
+        class CalculadoraMexico
+        class ValidadorMexico
+        class GeneradorCFDI
+    }
+    namespace peru_reto_A {
+        class FabricaPeru {
+            <<ConcreteFactory>>
+        }
+        class CalculadoraPeru
+        class ValidadorPeru
+        class GeneradorSUNAT
+    }
+ 
+    ServicioFacturacion --> "*" FabricaFacturacion : usa
+    ServicioFacturacion --> CalculadoraImpuestos : usa
+    ServicioFacturacion --> ValidadorIdentificacion : usa
+    ServicioFacturacion --> GeneradorComprobante : usa
+    GeneradorComprobante --> Comprobante : crea
+ 
+    FabricaFacturacion <|.. FabricaColombia
+    FabricaFacturacion <|.. FabricaMexico
+    FabricaFacturacion <|.. FabricaPeru
+    CalculadoraImpuestos <|.. CalculadoraColombia
+    CalculadoraImpuestos <|.. CalculadoraMexico
+    CalculadoraImpuestos <|.. CalculadoraPeru
+    ValidadorIdentificacion <|.. ValidadorColombia
+    ValidadorIdentificacion <|.. ValidadorMexico
+    ValidadorIdentificacion <|.. ValidadorPeru
+    GeneradorComprobante <|.. GeneradorDIAN
+    GeneradorComprobante <|.. GeneradorCFDI
+    GeneradorComprobante <|.. GeneradorSUNAT
+ 
+    FabricaColombia --> CalculadoraColombia : crea
+    FabricaColombia --> ValidadorColombia : crea
+    FabricaColombia --> GeneradorDIAN : crea
+    FabricaMexico --> CalculadoraMexico : crea
+    FabricaMexico --> ValidadorMexico : crea
+    FabricaMexico --> GeneradorCFDI : crea
+    FabricaPeru --> CalculadoraPeru : crea
+    FabricaPeru --> ValidadorPeru : crea
+    FabricaPeru --> GeneradorSUNAT : crea
+```
+ 
+**Notación:** `- - -▷` implementa · `───>` usa o crea. Cada recuadro es una familia: la fábrica de un país solo crea productos de ese país. `ServicioFacturacion` no tiene flechas a ninguna clase de un país: solo conoce las interfaces.
 #### Endpoint que lo evidencia
 
 El comprobante se incluye en la respuesta de:
@@ -184,7 +390,60 @@ Sin el patrón, `PedidoService` tendría que multiplicar por 100, partir el text
 Es un **adaptador de objeto** (usa composición, no herencia), la variante recomendada por GoF y Head First.
  
 #### Diagrama de clases
+ ```mermaid
+classDiagram
+    direction TB
+    class PedidoService {
+        <<Client>>
+        -pasarelas: Map~String, PasarelaDePago~
+        +pagar(String id, String proveedor) Pedido
+    }
+    class PasarelaDePago {
+        <<interface>>
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class LegacyPayAdapter {
+        <<Adapter>>
+        -cliente: LegacyPayClient
+        +LegacyPayAdapter(double probabilidadTimeout)
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+        -aCentavos(BigDecimal montoUsd) long
+        -interpretar(String respuesta) ResultadoPago
+    }
+    class QuickPayAdapter {
+        <<Adapter>>
+        -sdk: QuickPaySdk
+        +QuickPayAdapter()
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class LegacyPayClient {
+        <<Adaptee · externos>>
+        +makeCharge(long amountInCents, String currency, String reference) String
+    }
+    class QuickPaySdk {
+        <<Adaptee · externos>>
+        +pay(QuickPayRequest request) QuickPayResult
+    }
+    class ResultadoPago {
+        <<record>>
+        +aprobado: boolean
+        +autorizacion: String
+        +mensaje: String
+    }
+    class PasarelaNoDisponibleException
  
+    PedidoService --> PasarelaDePago : usa
+    PasarelaDePago <|.. LegacyPayAdapter : implementa
+    PasarelaDePago <|.. QuickPayAdapter : implementa
+    LegacyPayAdapter --> LegacyPayClient : delega
+    QuickPayAdapter --> QuickPaySdk : delega
+    PasarelaDePago --> ResultadoPago : devuelve
+    LegacyPayAdapter --> PasarelaNoDisponibleException : crea y lanza
+```
+ 
+**Notación:** `- - -▷` implementa · `───>` usa, crea o delega. Los *Adaptee* (`LegacyPayClient`, `QuickPaySdk`) están en el paquete `externos` y no se modifican.
+ 
+---
 
 #### Endpoint que lo evidencia
  
@@ -247,9 +506,84 @@ shopflow.pagos.auditoria=true
 Cambiar estas propiedades cambia las capas sin modificar ninguna clase.
  
 #### Diagrama de clases
+```mermaid
+classDiagram
+    direction TB
+    class PasarelaDePago {
+        <<interface>>
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class LegacyPayAdapter {
+        <<ConcreteComponent>>
+    }
+    class QuickPayAdapter {
+        <<ConcreteComponent>>
+    }
+    class PasarelaDecorator {
+        <<abstract · Decorator>>
+        #envuelta: PasarelaDePago
+        #PasarelaDecorator(PasarelaDePago envuelta)
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class ReintentoPago {
+        <<ConcreteDecorator>>
+        -maxIntentos: int
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class AuditoriaPago {
+        <<ConcreteDecorator>>
+        -proveedor: String
+        -registro: RegistroAuditoria
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class MetricasPago {
+        <<ConcreteDecorator · reto B>>
+        -proveedor: String
+        -cobros: AtomicInteger
+        -aprobados: AtomicInteger
+        +cobrar(BigDecimal montoUsd, String referencia) ResultadoPago
+    }
+    class RegistroAuditoria {
+        <<Component Spring>>
+        -entradas: List~EntradaAuditoria~
+        +registrar(EntradaAuditoria entrada) void
+        +listar() List~EntradaAuditoria~
+    }
+    class EntradaAuditoria {
+        <<record>>
+        +proveedor: String
+        +referencia: String
+        +monto: BigDecimal
+        +resultado: String
+        +mensaje: String
+        +duracionMs: long
+    }
+    class ConfiguracionPagos {
+        <<Configuration>>
+        -reintentos: boolean
+        -maxIntentos: int
+        -auditoria: boolean
+        +pasarelas(double, RegistroAuditoria) Map~String, PasarelaDePago~
+        -armar(String, PasarelaDePago, RegistroAuditoria) PasarelaDePago
+    }
  
-
-La clave está en la doble relación de `PasarelaDecorator` con `PasarelaDePago`: **la implementa** para tener el mismo tipo y **la contiene** para agregar comportamiento. Por eso un decorador puede envolver a otro sin límite y `PedidoService` no distingue una pasarela simple de una envuelta tres veces.
+    PasarelaDePago <|.. LegacyPayAdapter : implementa
+    PasarelaDePago <|.. QuickPayAdapter : implementa
+    PasarelaDePago <|.. PasarelaDecorator : implementa
+    PasarelaDePago "1" <--o PasarelaDecorator : envuelve (tiene-un)
+    PasarelaDecorator <|-- ReintentoPago : hereda
+    PasarelaDecorator <|-- AuditoriaPago : hereda
+    PasarelaDecorator <|-- MetricasPago : hereda
+    AuditoriaPago --> RegistroAuditoria : registra en
+    RegistroAuditoria --> "*" EntradaAuditoria : guarda
+    ConfiguracionPagos --> PasarelaDecorator : crea las capas
+ 
+    note for ConfiguracionPagos "Orden de las capas:<br>MetricasPago( AuditoriaPago( ReintentoPago( adapter ) ) )"
+```
+ 
+**Notación:** `- - -▷` implementa · `───▷` hereda · `◇───>` envuelve (tiene-un) · `───>` usa o crea.
+ 
+---
  
 #### Endpoint que lo evidencia
  
