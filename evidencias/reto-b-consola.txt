@@ -1,0 +1,9 @@
+[Métricas] LEGACYPAY · cobros: 1 · aprobados: 1 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 2 · aprobados: 2 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 3 · aprobados: 3 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 4 · aprobados: 4 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 5 · aprobados: 5 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 6 · aprobados: 6 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 7 · aprobados: 7 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 8 · aprobados: 8 · tasa de aprobación: 100,0 %
+[Métricas] LEGACYPAY · cobros: 9 · aprobados: 9 · tasa de aprobación: 100,0 %
