@@ -1,0 +1,6 @@
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Fri, 30 Oct 2026 07:11:35 GMT
+
+{"id":"PED-20261030-001","clienteId":"CLI-001","documentoCliente":"1020304050","pais":"CO","contacto":"ana.perez@correo.com","items":[{"sku":"SKU-001","nombre":"Teclado mecánico","cantidad":1,"precioUnitario":85.00},{"sku":"SKU-002","nombre":"Mouse inalámbrico","cantidad":2,"precioUnitario":25.50}],"direccionEnvio":"Calle 134 # 9-51, Bogotá","recogerEnTienda":null,"cupon":"BOSQUE10","notaRegalo":null,"envioExpress":true,"canalNotificacion":"EMAIL","subtotal":122.4000,"descuento":13.6000,"comprobante":{"tipo":"Factura electrónica","descripcion":"DIAN","subtotal":122.4000,"impuesto":23.256000,"total":145.656000,"porcentajeIVA":19},"estado":"PAGADO","autorizacionPago":"LP833344"}

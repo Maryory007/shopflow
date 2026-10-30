@@ -1,0 +1,6 @@
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Fri, 30 Oct 2026 07:11:40 GMT
+
+{"id":"PED-20261030-002","clienteId":"CLI-002","documentoCliente":"1020304050","pais":"CO","contacto":"ana.perez@correo.com","items":[{"sku":"SKU-004","nombre":"Portátil 14 pulgadas","cantidad":2,"precioUnitario":1450.00}],"direccionEnvio":"Calle 134 # 9-51, Bogotá","recogerEnTienda":null,"cupon":null,"notaRegalo":null,"envioExpress":null,"canalNotificacion":"EMAIL","subtotal":2900.00,"descuento":0,"comprobante":{"tipo":"Factura electrónica","descripcion":"DIAN","subtotal":2900.00,"impuesto":551.0000,"total":3451.0000,"porcentajeIVA":19},"estado":"PAGADO","autorizacionPago":"QP-0897efb7"}
