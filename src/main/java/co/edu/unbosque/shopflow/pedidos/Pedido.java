@@ -8,7 +8,7 @@ import co.edu.unbosque.shopflow.facturacion.Comprobante;
 public class Pedido {
 
 	private final String id;
-	
+
 	private final String clienteId;
 
 	private final String documentoCliente;
@@ -37,6 +37,10 @@ public class Pedido {
 
 	private Comprobante comprobante;
 
+	private String estado = "CREADO";
+
+	private String autorizacionPago;
+
 	private Pedido(Builder builder) {
 
 		this.id = builder.id;
@@ -53,6 +57,7 @@ public class Pedido {
 		this.canalNotificacion = builder.canalNotificacion;
 		this.subtotal = builder.subtotal;
 		this.descuento = builder.descuento;
+
 
 	}
 
@@ -201,6 +206,32 @@ public class Pedido {
 
 		}
 
+	}
+
+	public boolean estaPagado() {
+
+		return "PAGADO".equals(estado);
+
+	}
+
+	public void registrarPago(String autorizacion) {
+
+		if (estaPagado()) {
+
+			throw new IllegalStateException("El pedido " + id + " ya fue pagado");
+
+		}
+
+		this.estado = "PAGADO";
+		this.autorizacionPago = autorizacion;
+
+	}
+	public String getEstado() {
+		return estado;
+	}
+
+	public String getAutorizacionPago() {
+		return autorizacionPago;
 	}
 
 	public void asignarComprobante(Comprobante comprobante) {
