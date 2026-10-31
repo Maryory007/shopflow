@@ -1,4 +1,4 @@
-# ShopFlow
+ # ShopFlow
 
 Ingeniería de Software 2 · Taller: patrones de diseño creacionales y estructurales en una API REST (Universidad El Bosque, 2026-2).
 
@@ -821,16 +821,10 @@ El producto valida un número internacional con indicativo, como `+573001234567`
 ## 5. Preguntas de reflexión
 
 **1. Escriba cómo habría quedado `PedidoService` sin Factory Method ni Abstract Factory: ¿cuántos `if` tendría y qué clases habría que modificar para abrir Perú y agregar WhatsApp?**
-
-_Respuesta pendiente._
-
-**Aporte Rol C:** sin Factory Method, `PedidoService` tendría una rama por canal para elegir el tipo de notificación; sin Abstract Factory, el flujo de facturación tendría al menos tres puntos de decisión por país (impuestos, validación y comprobante). Con Colombia y México ya habría al menos cuatro decisiones entre crear la factura y enviar la notificación. Abrir Perú obligaría a modificar las tres decisiones de facturación y agregar WhatsApp obligaría a modificar la decisión del canal. Con las abstracciones actuales, cada país agrega su fábrica/familia y cada canal su producto/creador; el servicio cliente conserva el mismo flujo.
+Sin Factory Method, `PedidoService` tendría una rama por canal para elegir el tipo de notificación; sin Abstract Factory, el flujo de facturación tendría al menos tres puntos de decisión por país (impuestos, validación y comprobante). Con Colombia y México ya habría al menos cuatro decisiones entre crear la factura y enviar la notificación. Abrir Perú obligaría a modificar las tres decisiones de facturación y agregar WhatsApp obligaría a modificar la decisión del canal. Con las abstracciones actuales, cada país agrega su fábrica/familia y cada canal su producto/creador; el servicio cliente conserva el mismo flujo.
 
 **2. ¿Por qué las notificaciones usan Factory Method y la facturación usa Abstract Factory? Responda con la diferencia entre crear un producto y crear una familia de productos.**
-
-_Respuesta pendiente._
-
-**Aporte Rol C:** Factory Method crea un producto de una sola familia de notificaciones: cada `Notificador` concreto elige el producto `Notificacion` que necesita. Abstract Factory crea una familia coherente de productos de facturación de un país (cálculo de impuestos, validación y comprobante). Por eso el canal varía con un método fábrica, mientras que el país selecciona la fábrica que produce sus tres componentes compatibles.
+Factory Method crea un producto de una sola familia de notificaciones: cada `Notificador` concreto elige el producto `Notificacion` que necesita. Abstract Factory crea una familia coherente de productos de facturación de un país (cálculo de impuestos, validación y comprobante). Por eso el canal varía con un método fábrica, mientras que el país selecciona la fábrica que produce sus tres componentes compatibles.
 
 **3. Invierta el orden de los decoradores (reintento por fuera de la auditoría) y pague cinco pedidos con LegacyPay. ¿Qué cambia en `GET /api/pagos/auditoria`? ¿Qué orden conviene y por qué?**
 
@@ -844,11 +838,10 @@ Con el orden normal (auditoría por fuera del reintento), la auditoría guarda *
 
 **4. `CatalogoCacheProxy` y `AuditoriaPago` tienen casi la misma estructura: implementan la interfaz y envuelven un objeto. ¿Por qué uno es Proxy y el otro Decorator?**
 
-**Aporte Rol C:** ambos tienen el mismo contrato y envuelven una implementación. `CatalogoCacheProxy` controla cuándo delega en el catálogo remoto y conserva respuestas para reducir consultas costosas; `AuditoriaPago` delega cada cobro y agrega una responsabilidad de registro. El primero controla el acceso al objeto real (Proxy); el segundo añade comportamiento a una pasarela ya elegida (Decorator).
+Ambos tienen el mismo contrato y envuelven una implementación. `CatalogoCacheProxy` controla cuándo delega en el catálogo remoto y conserva respuestas para reducir consultas costosas; `AuditoriaPago` delega cada cobro y agrega una responsabilidad de registro. El primero controla el acceso al objeto real (Proxy); el segundo añade comportamiento a una pasarela ya elegida (Decorator).
 
 **5. Si otro sistema cambia un precio directamente en el catálogo remoto, ¿qué problema tiene la caché del proxy? Proponga una solución.**
-
-**Aporte Rol C:** la caché puede servir el precio anterior si otro sistema cambia el catálogo remoto por fuera del proxy. Para evitarlo, se puede asignar expiración (TTL) a cada entrada, invalidar o actualizar el SKU al recibir eventos de cambio desde el servicio remoto, o consultar periódicamente una versión del catálogo. El proxy ya mantiene coherencia para los cambios hechos por su propio `actualizarPrecio`; los cambios externos requieren invalidación o una política de frescura.
+La caché puede servir el precio anterior si otro sistema cambia el catálogo remoto por fuera del proxy. Para evitarlo, se puede asignar expiración (TTL) a cada entrada, invalidar o actualizar el SKU al recibir eventos de cambio desde el servicio remoto, o consultar periódicamente una versión del catálogo. El proxy ya mantiene coherencia para los cambios hechos por su propio `actualizarPrecio`; los cambios externos requieren invalidación o una política de frescura.
 
 **6. `QuickPayAdapter` convierte `BigDecimal` a `double`. ¿Qué riesgo trae y por qué conviene que esa decisión viva en el adapter y no en el dominio?**
 
@@ -863,10 +856,13 @@ Conviene que la conversión viva en el adapter porque usar `double` es una **exi
 **8. Para cada patrón, indique el principio SOLID que aplica y cite la clase o la línea de código que lo evidencia.**
 
  
+
 | Patrón | Principio | Evidencia en el código |
 |---|---|---|
-| Builder | _Pendiente (Rol A)_ | |
-| Abstract Factory | _Pendiente (Rol A)_ | |
+| Builder | SRP | `Pedido` solo representa el pedido; `Pedido.Builder` se encarga de construirlo y de validar todas las reglas en `build()`. |
+| Builder | OCP | Agregar una opción nueva al pedido es un método nuevo en `Pedido.Builder`, sin crear más constructores. |
+| Abstract Factory | OCP | El reto A agregó `FabricaPeru` y su familia como clases nuevas, sin modificar `ServicioFacturacion`. |
+| Abstract Factory | DIP | `ServicioFacturacion` recibe `List<FabricaFacturacion>` y solo usa las interfaces `CalculadoraImpuestos`, `ValidadorIdentificacion` y `GeneradorComprobante`. |
 | Adapter | DIP | `PedidoService` recibe `Map<String, PasarelaDePago>` y no importa nada del paquete `externos`. |
 | Adapter | SRP | La conversión de centavos y del texto `"código\|autorización"` está solo en `LegacyPayAdapter.cobrar(...)`. |
 | Decorator | OCP | `MetricasPago` (reto B) se agregó como clase nueva; solo cambió `ConfiguracionPagos`. |
@@ -875,10 +871,19 @@ Conviene que la conversión viva en el adapter porque usar `double` es una **exi
 | Proxy | OCP y LSP | `ConfiguracionCatalogo` entrega un `CatalogoCacheProxy` como `ServicioCatalogo`; `CatalogoProteccionProxy` también implementa `ServicioCatalogo`, por lo que ambos sustituyen al real. Se agregan controles sin editar `CatalogoRemoto`. |
 | Factory Method | OCP y DIP | `PedidoService` recibe `List<Notificador>` y usa `notificarPagoAprobado()`; los concretos `NotificadorEmail`, `NotificadorSms` y `NotificadorWhatsApp` encapsulan la creación de `Notificacion`. |
 
-## 6. Pruebas
-
-Ejecutar la suite del proyecto con:
-
-```bash
-mvn test
-```
+## 6. Conclusiones y dificultades
+ 
+### Conclusiones
+ 
+- Los patrones no se aplicaron por aplicarlos: cada uno responde a una necesidad concreta de ShopFlow (pedidos con muchas opciones, facturación por país, proveedores de pago distintos, capas opcionales sobre los cobros, un catálogo lento y canales de notificación).
+- Los tres retos de extensión (Perú, métricas y WhatsApp) se resolvieron agregando clases nuevas. Solo el reto B modificó `ConfiguracionPagos`, que es el punto de composición permitido. Esto muestra que el diseño está abierto a la extensión y cerrado a la modificación.
+- Programar contra interfaces (`PasarelaDePago`, `ServicioCatalogo`, `FabricaFacturacion`, `Notificador`) permitió que cada integrante trabajara su parte sin cambiar el código de los demás.
+- El orden de los decoradores cambia el comportamiento: lo comprobamos con la auditoría (pregunta 3).
+### Dificultades
+ 
+- **Clases compartidas:** `Pedido` y `PedidoService` las usan los tres roles (Builder, pagos y notificaciones). Hubo que coordinar los cambios para evitar conflictos al integrar las ramas.
+- **Configuración del entorno:** un integrante tuvo problemas para abrir el proyecto (Eclipse y Git), lo que retrasó la integración de su parte. Se resolvió enviando los archivos al integrador, que los subió en commits separados.
+- **Archivos compilados en el repositorio:** la carpeta `target/` se subió al inicio, y Git la marcaba como modificada en cada compilación.
+- **Pruebas que dependen del azar:** LegacyPay falla el 30 % de las veces. Para que las pruebas unitarias fueran estables se usaron `new LegacyPayClient(1.0)` (siempre falla) y pasarelas falsas escritas a mano.
+- **Evidencia del reto:** para que `git diff --stat` mostrara solo los archivos del reto, cada reto tuvo que quedar en su propio commit.
+ 
