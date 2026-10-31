@@ -629,7 +629,7 @@ Pruebas unitarias: `CatalogoProxyTest` comprueba la reutilización de la caché,
 
 #### Diagrama de clases
 
-mermaid
+```mermaid
 classDiagram
     direction TB
     class ServicioCatalogo {
@@ -714,6 +714,7 @@ classDiagram
  
     note for CatalogoCacheProxy "buscar() consulta al remoto cuando el SKU no está en caché; listar() carga los resultados y actualizarPrecio() sincroniza el SKU actualizado."
     note for CatalogoProteccionProxy "Para el PUT, envuelve el ServicioCatalogo recibido por ProductoController; la configuración actual entrega CatalogoCacheProxy."
+```
 
 ### 3.6 Factory Method
 
@@ -743,7 +744,8 @@ Prueba unitaria: `FactoryMethodNotificacionTest` verifica las reglas de WhatsApp
 
 #### Diagrama de clases
 
-mermaid
+ 
+```mermaid
 classDiagram
     direction TB
     class Notificacion {
@@ -870,7 +872,6 @@ classDiagram
     note for NotificacionSms "Valida el destino y recorta el mensaje a un máximo de 160 caracteres."
     note for NotificacionWhatsApp "Valida un número internacional con indicativo y antepone ✅ al mensaje."
 ```
-
 ## 4. Retos de extensión
 
 ### Reto A · Perú (Abstract Factory)
