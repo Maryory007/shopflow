@@ -814,8 +814,17 @@ El producto valida un número internacional con indicativo, como `+573001234567`
 [Métricas] QUICKPAY · cobros: 1 · aprobados: 1 · tasa de aprobación: 100,0 %
 ```
 
-**Evidencia:** la salida de consola está en `evidencias/reto-c-consola.txt`; las respuestas de `POST /api/pedidos`, `POST /api/pedidos/{id}/pago` y `GET /api/notificaciones` están en `evidencias/reto-c-whatsapp.txt`.
-
+**Evidencia:** salida de `git diff --stat` del commit del reto (solo archivos nuevos):
+ 
+```
+$ git diff --stat HEAD~1 HEAD
+ .../notificaciones/NotificacionWhatsApp.java       | 18 +++++++++++++++++
+ .../notificaciones/NotificadorWhatsApp.java        | 23 ++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
+```
+ 
+También se guarda en `evidencias/reto-c-diff.txt`. La salida de consola está en `evidencias/reto-c-consola.txt`; las respuestas de `POST /api/pedidos`, `POST /api/pedidos/{id}/pago` y `GET /api/notificaciones` están en `evidencias/reto-c-whatsapp.txt`.
+ 
 ---
 
 ## 5. Preguntas de reflexión
@@ -850,8 +859,7 @@ La caché puede servir el precio anterior si otro sistema cambia el catálogo re
 Conviene que la conversión viva en el adapter porque usar `double` es una **exigencia del SDK de QuickPay**, no una regla de ShopFlow. Así, el dominio sigue trabajando con `BigDecimal` en todas sus cuentas (subtotal, descuento, impuestos, total), y la pérdida de precisión queda en un solo punto, en la frontera con el código ajeno, donde se puede probar. Si QuickPay cambia su API o llega otro proveedor, solo cambia el adapter (SRP y DIP).
 
 **7. ¿En qué parte del proyecto no convenía aplicar un patrón? Justifique con el criterio «cuándo no usarlo» del Anexo A.**
-
-**Aporte Rol C:** no conviene crear un Proxy para `BandejaNotificaciones`: en este taller es un componente local y ligero que solo mantiene una lista en memoria, sin latencia remota, carga costosa ni permisos diferenciados. Un proxy añadiría indirección sin resolver un problema presente. El Proxy sí se justifica en `ServicioCatalogo`, porque allí la demora remota y la restricción de ADMIN son necesidades concretas.
+No conviene crear un Proxy para `BandejaNotificaciones`: en este taller es un componente local y ligero que solo mantiene una lista en memoria, sin latencia remota, carga costosa ni permisos diferenciados. Un proxy añadiría indirección sin resolver un problema presente. El Proxy sí se justifica en `ServicioCatalogo`, porque allí la demora remota y la restricción de ADMIN son necesidades concretas.
 
 **8. Para cada patrón, indique el principio SOLID que aplica y cite la clase o la línea de código que lo evidencia.**
 
