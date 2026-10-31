@@ -631,20 +631,89 @@ Pruebas unitarias: `CatalogoProxyTest` comprueba la reutilización de la caché,
 
 ```mermaid
 classDiagram
+    direction TB
     class ServicioCatalogo {
-        <<interface>>
-        +buscar(sku)
-        +listar()
-        +actualizarPrecio(sku, nuevoPrecio)
+        <<interface · Subject>>
+        +buscar(String sku) Producto
+        +listar() List~Producto~
+        +actualizarPrecio(String sku, BigDecimal nuevoPrecio) Producto
     }
-    ServicioCatalogo <|.. CatalogoRemoto
-    ServicioCatalogo <|.. CatalogoCacheProxy
-    ServicioCatalogo <|.. CatalogoProteccionProxy
-    CatalogoCacheProxy --> ServicioCatalogo : delega
-    CatalogoProteccionProxy --> ServicioCatalogo : delega
-    ConfiguracionCatalogo ..> CatalogoCacheProxy : configura
-    ProductoController --> ServicioCatalogo
-    PedidoService --> ServicioCatalogo
+    class CatalogoRemoto {
+        <<RealSubject>>
+        -productos: Map~String, Producto~
+        -llamadas: int
+        +buscar(String sku) Producto
+        +listar() List~Producto~
+        +actualizarPrecio(String sku, BigDecimal nuevoPrecio) Producto
+        +llamadasRecibidas() int
+        -latenciaDeRed() void
+    }
+    class CatalogoCacheProxy {
+        <<CacheProxy · Rol C>>
+        -catalogoReal: ServicioCatalogo
+        -cache: ConcurrentMap~String, Producto~
+        +CatalogoCacheProxy(ServicioCatalogo catalogoReal)
+        +buscar(String sku) Producto
+        +listar() List~Producto~
+        +actualizarPrecio(String sku, BigDecimal nuevoPrecio) Producto
+    }
+    class CatalogoProteccionProxy {
+        <<ProtectionProxy · Rol C>>
+        -catalogo: ServicioCatalogo
+        -rol: String
+        +CatalogoProteccionProxy(ServicioCatalogo catalogo, String rol)
+        +buscar(String sku) Producto
+        +listar() List~Producto~
+        +actualizarPrecio(String sku, BigDecimal nuevoPrecio) Producto
+    }
+    class ConfiguracionCatalogo {
+        <<Configuration>>
+        +servicioCatalogo() ServicioCatalogo
+    }
+    class ProductoController {
+        <<Client · REST>>
+        -catalogo: ServicioCatalogo
+        +ProductoController(ServicioCatalogo catalogo)
+        +listar() List~Producto~
+        +buscar(String sku) Producto
+        +actualizarPrecio(String sku, String rol, ActualizacionPrecio solicitud) Producto
+    }
+    class ActualizacionPrecio {
+        <<record · ProductoController>>
+        +precio: BigDecimal
+    }
+    class PedidoService {
+        <<Client · pedidos>>
+        -servicioCatalogo: ServicioCatalogo
+        +crear(PedidoRequest request) Pedido
+    }
+    class Producto {
+        <<record>>
+        +sku: String
+        +nombre: String
+        +precio: BigDecimal
+        +conPrecio(BigDecimal nuevoPrecio) Producto
+    }
+    class AccesoDenegadoException {
+        <<Exception>>
+    }
+
+    ServicioCatalogo <|.. CatalogoRemoto : implementa
+    ServicioCatalogo <|.. CatalogoCacheProxy : implementa
+    ServicioCatalogo <|.. CatalogoProteccionProxy : implementa
+    CatalogoCacheProxy --> ServicioCatalogo : delega consultas y cambios
+    CatalogoProteccionProxy --> ServicioCatalogo : autoriza y delega
+    CatalogoProteccionProxy ..> AccesoDenegadoException : lanza si no es ADMIN
+    ConfiguracionCatalogo ..> CatalogoRemoto : crea sujeto real
+    ConfiguracionCatalogo ..> CatalogoCacheProxy : publica como ServicioCatalogo
+    ProductoController --> ServicioCatalogo : recibe el proxy de caché
+    ProductoController ..> CatalogoProteccionProxy : crea para PUT con X-Rol
+    ProductoController --> ActualizacionPrecio : recibe JSON
+    PedidoService --> ServicioCatalogo : consulta SKU al crear pedidos
+    ServicioCatalogo ..> Producto : devuelve
+
+    note for CatalogoCacheProxy "buscar() consulta al remoto cuando el SKU no está en caché; listar() carga los resultados y actualizarPrecio() sincroniza el SKU actualizado."
+    note for CatalogoProteccionProxy "Para el PUT, envuelve el ServicioCatalogo recibido por ProductoController; la configuración actual entrega CatalogoCacheProxy."
 ```
 
 ### 3.6 Factory Method
@@ -677,29 +746,129 @@ Prueba unitaria: `FactoryMethodNotificacionTest` verifica las reglas de WhatsApp
 
 ```mermaid
 classDiagram
+    direction TB
     class Notificacion {
-        <<interface>>
-        +enviar(destino, mensaje)
+        <<interface · Product>>
+        +enviar(String destino, String mensaje) void
     }
     class Notificador {
-        <<abstract>>
-        +notificarPagoAprobado(destino, pedidoId, total)
-        +canal()
-        #crearNotificacion()
+        <<abstract · Creator>>
+        +notificarPagoAprobado(String destino, String pedidoId, BigDecimal total) void
+        +canal() String
+        #crearNotificacion() Notificacion
     }
-    Notificador <|-- NotificadorEmail
-    Notificador <|-- NotificadorSms
-    Notificador <|-- NotificadorWhatsApp
-    Notificacion <|.. NotificacionEmail
-    Notificacion <|.. NotificacionSms
-    Notificacion <|.. NotificacionWhatsApp
+    class NotificadorEmail {
+        <<ConcreteCreator>>
+        -bandeja: BandejaNotificaciones
+        +NotificadorEmail(BandejaNotificaciones bandeja)
+        +canal() String
+        #crearNotificacion() Notificacion
+    }
+    class NotificadorSms {
+        <<ConcreteCreator>>
+        -bandeja: BandejaNotificaciones
+        +NotificadorSms(BandejaNotificaciones bandeja)
+        +canal() String
+        #crearNotificacion() Notificacion
+    }
+    class NotificadorWhatsApp {
+        <<ConcreteCreator · Reto C>>
+        -bandeja: BandejaNotificaciones
+        +NotificadorWhatsApp(BandejaNotificaciones bandeja)
+        +canal() String
+        #crearNotificacion() Notificacion
+    }
+    class NotificacionEmail {
+        <<ConcreteProduct>>
+        -bandeja: BandejaNotificaciones
+        +NotificacionEmail(BandejaNotificaciones bandeja)
+        +enviar(String destino, String mensaje) void
+    }
+    class NotificacionSms {
+        <<ConcreteProduct>>
+        -bandeja: BandejaNotificaciones
+        +NotificacionSms(BandejaNotificaciones bandeja)
+        +enviar(String destino, String mensaje) void
+    }
+    class NotificacionWhatsApp {
+        <<ConcreteProduct · Reto C>>
+        -bandeja: BandejaNotificaciones
+        +NotificacionWhatsApp(BandejaNotificaciones bandeja)
+        +enviar(String destino, String mensaje) void
+    }
+    class BandejaNotificaciones {
+        <<Component Spring>>
+        -enviadas: List~NotificacionEnviada~
+        +registrar(String canal, String destino, String mensaje) void
+        +todas() List~NotificacionEnviada~
+    }
+    class NotificacionEnviada {
+        <<record · BandejaNotificaciones>>
+        +canal: String
+        +destino: String
+        +mensaje: String
+        +fecha: LocalDateTime
+    }
+    class PedidoService {
+        <<Client>>
+        -notificadores: Map~String, Notificador~
+        +crear(PedidoRequest request) Pedido
+        +pagar(String id, String proveedor) Pedido
+    }
+    class Pedido {
+        <<Product · pedido>>
+        -id: String
+        -contacto: String
+        -canalNotificacion: String
+        +getId() String
+        +getContacto() String
+        +getCanalNotificacion() String
+    }
+    class PedidoRequest {
+        <<record · request REST>>
+        +contacto: String
+        +canalNotificacion: String
+    }
+    class PedidoController {
+        <<Client · REST>>
+        -pedidoService: PedidoService
+        +PedidoController(PedidoService pedidoService)
+        +crear(PedidoRequest request) ResponseEntity
+        +buscar(String id) ResponseEntity
+    }    class NotificacionController {
+        <<Client · REST>>
+        -bandeja: BandejaNotificaciones
+        +listar() List~NotificacionEnviada~
+    }
+
+    Notificador <|-- NotificadorEmail : hereda
+    Notificador <|-- NotificadorSms : hereda
+    Notificador <|-- NotificadorWhatsApp : hereda
+    Notificacion <|.. NotificacionEmail : implementa
+    Notificacion <|.. NotificacionSms : implementa
+    Notificacion <|.. NotificacionWhatsApp : implementa
+    Notificador ..> Notificacion : crea y usa desde el método común
     NotificadorEmail ..> NotificacionEmail : crea
     NotificadorSms ..> NotificacionSms : crea
     NotificadorWhatsApp ..> NotificacionWhatsApp : crea
-    NotificacionEmail --> BandejaNotificaciones : registra
-    NotificacionSms --> BandejaNotificaciones : registra
-    NotificacionWhatsApp --> BandejaNotificaciones : registra
-    PedidoService --> Notificador : selecciona por canal
+    NotificadorEmail --> BandejaNotificaciones : entrega la bandeja
+    NotificadorSms --> BandejaNotificaciones : entrega la bandeja
+    NotificadorWhatsApp --> BandejaNotificaciones : entrega la bandeja
+    NotificacionEmail --> BandejaNotificaciones : registra EMAIL
+    NotificacionSms --> BandejaNotificaciones : registra SMS
+    NotificacionWhatsApp --> BandejaNotificaciones : registra WHATSAPP
+    BandejaNotificaciones --> NotificacionEnviada : guarda envíos
+    PedidoService --> Notificador : indexa por canal y selecciona al aprobar pago
+    PedidoService --> Pedido : consulta contacto y canal
+    PedidoService ..> PedidoRequest : recibe canal y contacto
+    PedidoController --> PedidoService : procesa POST /api/pedidos
+    PedidoController ..> PedidoRequest : recibe JSON
+    NotificacionController --> BandejaNotificaciones : consulta GET /api/notificaciones
+
+    note for Notificador "notificarPagoAprobado() valida el destino, arma el mensaje común y delega la creación mediante crearNotificacion()."
+    note for NotificacionEmail "Valida que el destino tenga @ y agrega el asunto del correo."
+    note for NotificacionSms "Valida el destino y recorta el mensaje a un máximo de 160 caracteres."
+    note for NotificacionWhatsApp "Valida un número internacional con indicativo y antepone ✅ al mensaje."
 ```
 
 ---
