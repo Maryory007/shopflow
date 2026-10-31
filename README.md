@@ -629,7 +629,7 @@ Pruebas unitarias: `CatalogoProxyTest` comprueba la reutilización de la caché,
 
 #### Diagrama de clases
 
-```mermaid
+mermaid
 classDiagram
     direction TB
     class ServicioCatalogo {
@@ -697,24 +697,23 @@ classDiagram
     class AccesoDenegadoException {
         <<Exception>>
     }
-
+ 
     ServicioCatalogo <|.. CatalogoRemoto : implementa
     ServicioCatalogo <|.. CatalogoCacheProxy : implementa
     ServicioCatalogo <|.. CatalogoProteccionProxy : implementa
     CatalogoCacheProxy --> ServicioCatalogo : delega consultas y cambios
     CatalogoProteccionProxy --> ServicioCatalogo : autoriza y delega
-    CatalogoProteccionProxy ..> AccesoDenegadoException : lanza si no es ADMIN
-    ConfiguracionCatalogo ..> CatalogoRemoto : crea sujeto real
-    ConfiguracionCatalogo ..> CatalogoCacheProxy : publica como ServicioCatalogo
+    CatalogoProteccionProxy --> AccesoDenegadoException : lanza si no es ADMIN
+    ConfiguracionCatalogo --> CatalogoRemoto : crea sujeto real
+    ConfiguracionCatalogo --> CatalogoCacheProxy : publica como ServicioCatalogo
     ProductoController --> ServicioCatalogo : recibe el proxy de caché
-    ProductoController ..> CatalogoProteccionProxy : crea para PUT con X-Rol
+    ProductoController --> CatalogoProteccionProxy : crea para PUT con X-Rol
     ProductoController --> ActualizacionPrecio : recibe JSON
     PedidoService --> ServicioCatalogo : consulta SKU al crear pedidos
-    ServicioCatalogo ..> Producto : devuelve
-
+    ServicioCatalogo --> Producto : devuelve
+ 
     note for CatalogoCacheProxy "buscar() consulta al remoto cuando el SKU no está en caché; listar() carga los resultados y actualizarPrecio() sincroniza el SKU actualizado."
     note for CatalogoProteccionProxy "Para el PUT, envuelve el ServicioCatalogo recibido por ProductoController; la configuración actual entrega CatalogoCacheProxy."
-```
 
 ### 3.6 Factory Method
 
@@ -744,7 +743,7 @@ Prueba unitaria: `FactoryMethodNotificacionTest` verifica las reglas de WhatsApp
 
 #### Diagrama de clases
 
-```mermaid
+mermaid
 classDiagram
     direction TB
     class Notificacion {
@@ -816,7 +815,7 @@ classDiagram
         +pagar(String id, String proveedor) Pedido
     }
     class Pedido {
-        <<Product · pedido>>
+        <<Entidad · pedidos>>
         -id: String
         -contacto: String
         -canalNotificacion: String
@@ -835,22 +834,23 @@ classDiagram
         +PedidoController(PedidoService pedidoService)
         +crear(PedidoRequest request) ResponseEntity
         +buscar(String id) ResponseEntity
-    }    class NotificacionController {
+    }
+    class NotificacionController {
         <<Client · REST>>
         -bandeja: BandejaNotificaciones
         +listar() List~NotificacionEnviada~
     }
-
+ 
     Notificador <|-- NotificadorEmail : hereda
     Notificador <|-- NotificadorSms : hereda
     Notificador <|-- NotificadorWhatsApp : hereda
     Notificacion <|.. NotificacionEmail : implementa
     Notificacion <|.. NotificacionSms : implementa
     Notificacion <|.. NotificacionWhatsApp : implementa
-    Notificador ..> Notificacion : crea y usa desde el método común
-    NotificadorEmail ..> NotificacionEmail : crea
-    NotificadorSms ..> NotificacionSms : crea
-    NotificadorWhatsApp ..> NotificacionWhatsApp : crea
+    Notificador --> Notificacion : crea y usa desde el método común
+    NotificadorEmail --> NotificacionEmail : crea
+    NotificadorSms --> NotificacionSms : crea
+    NotificadorWhatsApp --> NotificacionWhatsApp : crea
     NotificadorEmail --> BandejaNotificaciones : entrega la bandeja
     NotificadorSms --> BandejaNotificaciones : entrega la bandeja
     NotificadorWhatsApp --> BandejaNotificaciones : entrega la bandeja
@@ -860,18 +860,16 @@ classDiagram
     BandejaNotificaciones --> NotificacionEnviada : guarda envíos
     PedidoService --> Notificador : indexa por canal y selecciona al aprobar pago
     PedidoService --> Pedido : consulta contacto y canal
-    PedidoService ..> PedidoRequest : recibe canal y contacto
+    PedidoService --> PedidoRequest : recibe canal y contacto
     PedidoController --> PedidoService : procesa POST /api/pedidos
-    PedidoController ..> PedidoRequest : recibe JSON
+    PedidoController --> PedidoRequest : recibe JSON
     NotificacionController --> BandejaNotificaciones : consulta GET /api/notificaciones
-
+ 
     note for Notificador "notificarPagoAprobado() valida el destino, arma el mensaje común y delega la creación mediante crearNotificacion()."
     note for NotificacionEmail "Valida que el destino tenga @ y agrega el asunto del correo."
     note for NotificacionSms "Valida el destino y recorta el mensaje a un máximo de 160 caracteres."
     note for NotificacionWhatsApp "Valida un número internacional con indicativo y antepone ✅ al mensaje."
 ```
-
----
 
 ## 4. Retos de extensión
 
