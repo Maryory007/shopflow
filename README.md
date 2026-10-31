@@ -26,7 +26,11 @@ mvn spring-boot:run
 
 La API queda disponible en `http://localhost:8080`.
 
-
+Para ejecutar las pruebas unitarias (JUnit 5):
+ 
+```bash
+mvn test
+```
 
 ## 2. Tabla de análisis de patrones (Anexo D)
 
@@ -1011,7 +1015,8 @@ Con el orden normal (auditoría por fuera del reintento), la auditoría guarda *
 |---|---|---|
 | Auditoría por fuera | 5 | 5 (todos aprobados) |
 | Reintento por fuera | 15 | 20 (14 aprobados + 6 «no disponible») |
- 
+
+Conviene la **auditoría por fuera**, porque lo que se debe registrar es cada pago, no cada intento. Además, el taller pide un solo registro por pago.
 
 **4. `CatalogoCacheProxy` y `AuditoriaPago` tienen casi la misma estructura: implementan la interfaz y envuelven un objeto. ¿Por qué uno es Proxy y el otro Decorator?**
 
