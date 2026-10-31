@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import co.edu.unbosque.shopflow.pagos.PasarelaDePago;
 import co.edu.unbosque.shopflow.pagos.ResultadoPago;
 import co.edu.unbosque.shopflow.facturacion.Comprobante;
+import co.edu.unbosque.shopflow.notificaciones.Notificador;
 
 @Service
 public class PedidoService {
@@ -30,20 +31,29 @@ public class PedidoService {
 	
 	private final Map<String, PasarelaDePago> pasarelas;
 
+	private final Map<String, Notificador> notificadores;
+
 	private final Map<String, Pedido> pedidos = new ConcurrentHashMap<>();
 
 	private final AtomicInteger consecutivo = new AtomicInteger(1);
 	
 	public PedidoService(ServicioCatalogo servicioCatalogo, ServicioFacturacion servicioFacturacion,
-			@Qualifier("pasarelas") Map<String, PasarelaDePago> pasarelas) {
+			@Qualifier("pasarelas") Map<String, PasarelaDePago> pasarelas, List<Notificador> notificadores) {
 
 		this.servicioCatalogo = servicioCatalogo;
 		this.servicioFacturacion = servicioFacturacion;
 		this.pasarelas = pasarelas;
+		this.notificadores = notificadores.stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+				notificador -> notificador.canal().toUpperCase(), notificador -> notificador));
 
 	}
 
 	public Pedido crear(PedidoRequest request) {
+		String canal = request.canalNotificacion() == null || request.canalNotificacion().isBlank()
+				? "EMAIL" : request.canalNotificacion().toUpperCase();
+		if (!notificadores.containsKey(canal)) {
+			throw new IllegalArgumentException("Canal de notificación no soportado: " + canal);
+		}
 
 		List<ItemPedido> items = request.items().stream().map(item -> {
 
@@ -60,7 +70,7 @@ public class PedidoService {
 
 				.id(id).direccionEnvio(request.direccionEnvio()).recogerEnTienda(request.recogerEnTienda())
 				.cupon(request.cupon()).notaRegalo(request.notaRegalo()).envioExpress(request.envioExpress())
-				.canalNotificacion(request.canalNotificacion())
+				.canalNotificacion(canal)
 
 				.build();
 
@@ -138,7 +148,8 @@ public class PedidoService {
 
 		pedido.registrarPago(resultado.autorizacion());
 
-		// Aquí el rol C enviará la notificación del pago aprobado (Factory Method).
+		Notificador notificador = notificadores.get(pedido.getCanalNotificacion());
+		notificador.notificarPagoAprobado(pedido.getContacto(), pedido.getId(), pedido.getComprobante().total());
 
 		return pedido;
 
