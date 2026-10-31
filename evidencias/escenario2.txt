@@ -1,0 +1,19 @@
+Escenario 2 - Protección del Proxy (2026-10-30 13:31:53 -05:00)
+PUT /api/productos/SKU-003/precio con X-Rol: CLIENTE
+HTTP/1.1 403
+Content-Type: application/json
+
+{"error":"Solo el rol ADMIN puede cambiar precios"}
+
+PUT /api/productos/SKU-003/precio con X-Rol: ADMIN
+HTTP/1.1 200
+Content-Type: application/json
+
+{"sku":"SKU-003","nombre":"Monitor 27 pulgadas","precio":299.90}
+
+GET /api/productos/SKU-003 después del cambio
+HTTP/1.1 200
+Content-Type: application/json
+
+{"sku":"SKU-003","nombre":"Monitor 27 pulgadas","precio":299.90}
+

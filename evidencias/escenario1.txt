@@ -1,0 +1,5 @@
+Escenario 1 - Caché del Proxy (2026-10-30 13:31:53 -05:00)
+GET /api/productos/SKU-003 - primera lectura: HTTP 200, 2322.15 ms
+{"sku":"SKU-003","nombre":"Monitor 27 pulgadas","precio":320.00}
+GET /api/productos/SKU-003 - lectura en caché: HTTP 200, 22.43 ms
+{"sku":"SKU-003","nombre":"Monitor 27 pulgadas","precio":320.00}

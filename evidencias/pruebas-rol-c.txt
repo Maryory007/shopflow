@@ -1,0 +1,9 @@
+Ejecución de pruebas JUnit 5 del Rol C con bytecode Java 17.
+Compilación: javac --release 17.
+
+PASS CatalogoProxyTest.cacheaUnaConsultaYActualizaElPrecioEnCache
+PASS CatalogoProxyTest.soloAdminPuedeActualizarYElCambioSePropagaAlCatalogo
+PASS CatalogoProxyTest.cacheaElProductoListadoParaLasBusquedasPosteriores
+PASS FactoryMethodNotificacionTest.whatsappCreaUnaNotificacionConIndicativoYPrefijo
+PASS FactoryMethodNotificacionTest.emailYsmsConservanSusReglasDeCanal
+RESULT: 5 pruebas del Rol C aprobadas

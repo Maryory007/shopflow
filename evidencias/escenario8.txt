@@ -1,0 +1,13 @@
+Escenario 8 - Auditoría y notificaciones (2026-10-30 13:31:53 -05:00)
+GET /api/pagos/auditoria
+HTTP/1.1 200
+Content-Type: application/json
+
+[{"proveedor":"LEGACYPAY","referencia":"PED-20261030-001","monto":145.656000,"resultado":"APROBADO","mensaje":"Pago aprobado","duracionMs":904},{"proveedor":"LEGACYPAY","referencia":"PED-20261030-006","monto":3451.0000,"resultado":"RECHAZADO","mensaje":"Fondos insuficientes","duracionMs":301},{"proveedor":"QUICKPAY","referencia":"PED-20261030-006","monto":3451.0000,"resultado":"APROBADO","mensaje":"Pago aprobado","duracionMs":15}]
+
+GET /api/notificaciones
+HTTP/1.1 200
+Content-Type: application/json
+
+[{"canal":"EMAIL","destino":"ana.perez@correo.com","mensaje":"Asunto: Pago aprobado en ShopFlow. Pago aprobado para el pedido PED-20261030-001. Total pagado: 145.656000 USD.","fecha":"2026-10-30T13:32:02.105667"},{"canal":"EMAIL","destino":"ana@correo.com","mensaje":"Asunto: Pago aprobado en ShopFlow. Pago aprobado para el pedido PED-20261030-006. Total pagado: 3451.0000 USD.","fecha":"2026-10-30T13:32:03.9905632"}]
+

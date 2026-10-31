@@ -1,0 +1,19 @@
+=== Reto C · WhatsApp (Factory Method) ===
+
+POST /api/pedidos
+HTTP/1.1 201
+Content-Type: application/json
+
+{"id":"PED-20261030-001","clienteId":"CLI-C-3","documentoCliente":"1020304050","pais":"CO","contacto":"+573001234567","items":[{"sku":"SKU-002","nombre":"Mouse inalámbrico","cantidad":1,"precioUnitario":25.50}],"direccionEnvio":"Bogotá","recogerEnTienda":null,"cupon":null,"notaRegalo":null,"envioExpress":null,"canalNotificacion":"WHATSAPP","subtotal":25.50,"descuento":0,"comprobante":{"tipo":"Factura electrónica","descripcion":"DIAN","subtotal":25.50,"impuesto":4.8450,"total":30.3450,"porcentajeIVA":19},"estado":"CREADO","autorizacionPago":null}
+
+POST /api/pedidos/PED-20261030-001/pago
+HTTP/1.1 200
+Content-Type: application/json
+
+{"id":"PED-20261030-001","clienteId":"CLI-C-3","documentoCliente":"1020304050","pais":"CO","contacto":"+573001234567","items":[{"sku":"SKU-002","nombre":"Mouse inalámbrico","cantidad":1,"precioUnitario":25.50}],"direccionEnvio":"Bogotá","recogerEnTienda":null,"cupon":null,"notaRegalo":null,"envioExpress":null,"canalNotificacion":"WHATSAPP","subtotal":25.50,"descuento":0,"comprobante":{"tipo":"Factura electrónica","descripcion":"DIAN","subtotal":25.50,"impuesto":4.8450,"total":30.3450,"porcentajeIVA":19},"estado":"PAGADO","autorizacionPago":"QP-2acd330c"}
+
+GET /api/notificaciones
+HTTP/1.1 200
+Content-Type: application/json
+
+[{"canal":"WHATSAPP","destino":"+573001234567","mensaje":"✅ Pago aprobado para el pedido PED-20261030-001. Total pagado: 30.3450 USD.","fecha":"2026-10-30T13:03:34.1945712"}]
